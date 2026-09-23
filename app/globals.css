@@ -382,23 +382,72 @@ h1, h2, .statement, .lede {
   height: 100%;
   aspect-ratio: auto;
 }
-.score-play {
-  align-self: center;
-  margin-top: 0.7rem;
-  border: 1px solid var(--line);
+.player-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+.player-toggle {
+  flex: none;
+  width: 2.7rem;
+  height: 2.7rem;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
   background: transparent;
   color: var(--gold);
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.55rem 1.4rem;
+  padding: 0;
   cursor: pointer;
 }
-.score-play:hover,
-.score-play[aria-pressed="true"] {
-  border-color: var(--gold);
-  background: rgba(212, 180, 131, 0.12);
+.player-toggle svg { width: 1.15rem; height: 1.15rem; display: block; margin: 0 auto; fill: currentColor; }
+.player-toggle:hover,
+.player-toggle[aria-pressed="true"] { background: rgba(212, 180, 131, 0.16); }
+.player-track { flex: 1; min-width: 0; }
+.player-name { font-family: var(--serif); font-size: 1.15rem; margin-bottom: 0.35rem; }
+.player-name span {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-right: 0.45rem;
+}
+.player-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.35rem;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--gold) var(--progress), rgba(212, 180, 131, 0.28) var(--progress));
+  cursor: pointer;
+}
+.player-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 0;
+}
+.player-range::-moz-range-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 0;
+}
+.player-times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
 }
 .score-lyrics {
   position: relative;
@@ -410,13 +459,12 @@ h1, h2, .statement, .lede {
 .score-lyrics .score-line {
   display: block;
   margin: 0.35rem 0;
-  color: var(--muted);
+  color: var(--gold);
   font-family: var(--serif);
   font-size: 1.2rem;
   letter-spacing: 0;
   text-transform: none;
 }
-.score-lyrics .score-line.is-current { color: var(--gold); }
 
 .spine {
   list-style: none;

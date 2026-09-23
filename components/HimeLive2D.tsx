@@ -234,7 +234,7 @@ const HimeLive2D = forwardRef<
             backgroundAlpha: 0,
             antialias: true,
             autoDensity: true,
-            resolution: Math.min(2.5, window.devicePixelRatio * 2),
+            resolution: followCursor ? Math.min(2, window.devicePixelRatio) : 1,
           });
           if (cancelled) {
             view.destroy(true);

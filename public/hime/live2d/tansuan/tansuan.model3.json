@@ -3,11 +3,11 @@
   "FileReferences": {
     "Moc": "tansuan.moc3",
     "Textures": [
-      "tansuan.8192/texture_00.png",
-      "tansuan.8192/texture_01.png",
-      "tansuan.8192/texture_02.png",
-      "tansuan.8192/texture_03.png",
-      "tansuan.8192/texture_04.png"
+      "tansuan.2048/texture_00.png",
+      "tansuan.2048/texture_01.png",
+      "tansuan.2048/texture_02.png",
+      "tansuan.2048/texture_03.png",
+      "tansuan.2048/texture_04.png"
     ],
     "Physics": "tansuan.physics3.json"
   },

@@ -6,7 +6,29 @@ import { HimePortrait } from "@/components/HimeLive2D";
 import { judgmentDuskLyrics } from "@/content/judgment-dusk";
 import { getWork } from "@/content/works";
 
-const lines = judgmentDuskLyrics.flat();
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const whole = Math.floor(seconds);
+  const minutes = Math.floor(whole / 60);
+  const remain = whole % 60;
+  return `${minutes}:${remain.toString().padStart(2, "0")}`;
+}
+
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 5.5v13l11-6.5z" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 5h4.2v14H6zM13.8 5H18v14h-4.2z" />
+    </svg>
+  );
+}
 
 function band(data: Uint8Array, sampleRate: number, low: number, high: number) {
   const bin = sampleRate / 2 / data.length;
@@ -27,10 +49,11 @@ export function Soundtrack() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
-  const lyricsRef = useRef<HTMLDivElement>(null);
   const playingRef = useRef(false);
+  const scrubbingRef = useRef(false);
   const [playing, setPlaying] = useState(false);
-  const [lineIndex, setLineIndex] = useState(-1);
+  const [time, setTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     playingRef.current = playing;
@@ -42,7 +65,6 @@ export function Soundtrack() {
     let frame = 0;
     let mouth = 0;
     let body = 0;
-    let shownLine = -1;
     const started = performance.now() / 1000;
 
     const tick = (nowMs: number) => {
@@ -56,17 +78,6 @@ export function Soundtrack() {
         const rate = contextRef.current.sampleRate;
         vocal = band(freq, rate, 180, 3800);
         pulse = band(freq, rate, 40, 240);
-        const duration = audio.duration;
-        if (duration > 0) {
-          const index = Math.min(lines.length - 1, Math.floor((audio.currentTime / duration) * lines.length));
-          if (index !== shownLine) {
-            shownLine = index;
-            setLineIndex(index);
-          }
-        }
-      } else if (shownLine !== -1) {
-        shownLine = -1;
-        setLineIndex(-1);
       }
 
       const quiet = reduce.matches;
@@ -85,14 +96,6 @@ export function Soundtrack() {
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
   }, []);
-
-  useEffect(() => {
-    const box = lyricsRef.current;
-    const current = box?.querySelector<HTMLElement>(".is-current");
-    if (!box || !current) return;
-    const top = current.offsetTop - box.clientHeight / 2 + current.clientHeight / 2;
-    box.scrollTo({ top, behavior: "smooth" });
-  }, [lineIndex]);
 
   useEffect(() => {
     return () => {
@@ -130,44 +133,80 @@ export function Soundtrack() {
     }
   }
 
-  let seen = -1;
+  const progress = duration > 0 ? `${(time / duration) * 100}%` : "0%";
+
+  function seek(value: number) {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = value;
+    setTime(value);
+  }
 
   return (
-    <figure className="score">
-      <figcaption>
-        <span>Score</span> {score.title}
-      </figcaption>
+    <figure className="score player">
       <div className="score-stage">
         <div className="score-singer">
           <div className="score-stage-slot">
             <HimePortrait ref={figureRef} emotion={playing ? "happy" : "neutral"} followCursor={false} />
           </div>
-          <button type="button" className="score-play" aria-pressed={playing} onClick={() => void toggle()}>
-            {playing ? "Pause" : "Play"}
-          </button>
         </div>
-        <div className="score-lyrics" ref={lyricsRef} aria-label="Japanese lyrics">
+        <div className="score-lyrics" aria-label="Japanese lyrics">
           {judgmentDuskLyrics.map((stanza, stanzaIndex) => (
             <p key={stanzaIndex}>
-              {stanza.map((line) => {
-                seen += 1;
-                const index = seen;
-                const active = index === lineIndex;
-                return (
-                  <span key={line} className={active ? "score-line is-current" : "score-line"}>
-                    {line}
-                  </span>
-                );
-              })}
+              {stanza.map((line) => (
+                <span key={line} className="score-line">
+                  {line}
+                </span>
+              ))}
             </p>
           ))}
         </div>
       </div>
-      <p>Produced with Suno. The voice in the song is the score, not Hime&apos;s own.</p>
+      <div className="player-bar">
+        <button
+          type="button"
+          className="player-toggle"
+          aria-label={playing ? "Pause" : "Play"}
+          aria-pressed={playing}
+          onClick={() => void toggle()}
+        >
+          {playing ? <PauseIcon /> : <PlayIcon />}
+        </button>
+        <div className="player-track">
+          <div className="player-name">
+            <span>Score</span> {score.title}
+          </div>
+          <input
+            className="player-range"
+            type="range"
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={Math.min(time, duration || 0)}
+            aria-label="Song position"
+            style={{ ["--progress" as string]: progress }}
+            onPointerDown={() => {
+              scrubbingRef.current = true;
+            }}
+            onPointerUp={() => {
+              scrubbingRef.current = false;
+            }}
+            onChange={(event) => seek(Number(event.target.value))}
+          />
+          <div className="player-times">
+            <span>{formatTime(time)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+      </div>
       <audio
         ref={audioRef}
         preload="metadata"
         src={score.src}
+        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
+        onTimeUpdate={(event) => {
+          if (!scrubbingRef.current) setTime(event.currentTarget.currentTime);
+        }}
         onEnded={() => setPlaying(false)}
         onPause={() => setPlaying(false)}
       />
