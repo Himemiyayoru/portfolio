@@ -24,8 +24,14 @@ body {
   font-size: 1.2rem;
   line-height: 1.65;
   background:
-    radial-gradient(1200px 700px at 50% -10%, rgba(196, 92, 106, 0.16), transparent 55%),
+    radial-gradient(980px 460px at 78% -18%, rgba(212, 180, 131, 0.09), transparent 58%),
+    radial-gradient(720px 380px at 0% 0%, rgba(196, 92, 106, 0.05), transparent 52%),
     var(--paper);
+}
+
+::selection {
+  background: rgba(212, 180, 131, 0.35);
+  color: var(--ink);
 }
 
 a { color: inherit; }
@@ -43,10 +49,20 @@ h1, h2, .statement, .lede {
   display: flex;
   align-items: baseline;
   gap: 1.25rem;
-  padding: 0.9rem 1.4rem;
-  background: rgba(18, 14, 20, 0.9);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(10px);
+  padding: 0.85rem 1.5rem 0.95rem;
+  background: rgba(18, 14, 20, 0.86);
+  border-bottom: 0;
+  backdrop-filter: blur(16px);
+}
+
+.mast::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 180, 131, 0.15) 12%, var(--gold) 50%, rgba(212, 180, 131, 0.15) 88%, transparent);
 }
 
 .mast-name {
@@ -81,10 +97,16 @@ h1, h2, .statement, .lede {
 
 .mast nav {
   display: flex;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
-.mast nav a { text-decoration: none; }
+.mast nav a {
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
 .mast nav a:hover { color: var(--gold); }
 
 .codex {
@@ -97,6 +119,14 @@ h1, h2, .statement, .lede {
   line-height: 1.2;
   max-width: none;
   margin: 0.4rem 0 1.6rem;
+}
+.statement::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 1px;
+  margin-top: 1.05rem;
+  background: #d4b483;
 }
 
 .plates {
@@ -113,15 +143,20 @@ h1, h2, .statement, .lede {
   grid-template-rows: auto 1fr auto;
   min-height: 100%;
   text-decoration: none;
-  border: 1px solid var(--line);
-  background: rgba(27, 21, 32, 0.72);
-  padding: 0.75rem;
+  border: 1px solid rgba(212, 180, 131, 0.28);
+  background:
+    linear-gradient(180deg, rgba(212, 180, 131, 0.06), transparent 32%),
+    rgba(18, 14, 20, 0.62);
+  padding: 0.85rem;
   color: inherit;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  transition: border-color 180ms ease, transform 180ms ease;
 }
 
 .plate:hover,
 .plate:focus-visible {
   border-color: var(--gold);
+  transform: translateY(-2px);
   outline: none;
 }
 
@@ -363,6 +398,15 @@ h1, h2, .statement, .lede {
   font-size: 1.85rem;
   margin: 1.8rem 0 0.55rem;
   color: #d4b483;
+}
+.prose h2::after,
+.about h2::after {
+  content: "";
+  display: block;
+  width: 2.4rem;
+  height: 1px;
+  margin-top: 0.5rem;
+  background: #d4b483;
 }
 .prose h3 {
   font-family: var(--serif);
@@ -662,5 +706,6 @@ h1, h2, .statement, .lede {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hime { transition: none !important; }
+  .hime, .plate { transition: none !important; }
+  .plate:hover, .plate:focus-visible { transform: none; }
 }
