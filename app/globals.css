@@ -21,8 +21,8 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 1.05rem;
-  line-height: 1.55;
+  font-size: 1.2rem;
+  line-height: 1.65;
   background:
     radial-gradient(1200px 700px at 50% -10%, rgba(196, 92, 106, 0.16), transparent 55%),
     var(--paper);
@@ -88,14 +88,15 @@ h1, h2, .statement, .lede {
 .mast nav a:hover { color: var(--gold); }
 
 .codex {
-  padding: 2.2rem 15rem 6rem 1.6rem;
+  width: min(72rem, calc(100% - 13rem));
+  padding: 2.2rem 1.6rem 7rem 2rem;
 }
 
 .statement {
-  font-size: clamp(2rem, 4vw, 3.3rem);
-  line-height: 1.15;
-  max-width: 18ch;
-  margin: 0.4rem 0 1.8rem;
+  font-size: clamp(2.15rem, 3.2vw, 3rem);
+  line-height: 1.2;
+  max-width: 22em;
+  margin: 0.4rem 0 1.6rem;
 }
 
 .plates {
@@ -128,7 +129,8 @@ h1, h2, .statement, .lede {
 
 .plate-art {
   position: relative;
-  aspect-ratio: 5 / 4;
+  aspect-ratio: 16 / 9;
+  max-height: 12.5rem;
   overflow: hidden;
   background: #0d0a10;
   margin-bottom: 0.8rem;
@@ -138,12 +140,13 @@ h1, h2, .statement, .lede {
 
 .plate-copy h2 {
   margin: 0 0 0.35rem;
-  font-size: 1.7rem;
+  font-size: 1.85rem;
 }
 
 .plate-copy p {
   margin: 0 0 0.8rem;
   color: var(--muted);
+  font-size: 1.12rem;
 }
 
 .hime-mark,
@@ -261,13 +264,22 @@ h1, h2, .statement, .lede {
 }
 
 .lede {
-  font-size: 1.35rem;
-  max-width: 38rem;
+  font-size: 1.45rem;
+  max-width: 46rem;
   margin: 0 0 1.4rem;
 }
 
-.wide-still { margin: 0 0 0.8rem; }
-.wide-still img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
+.wide-still { max-width: 40rem; margin: 0 0 0.8rem; }
+.wide-still img {
+  width: 100%;
+  height: auto;
+  max-height: 22rem;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+  border: 1px solid var(--line);
+  background: #0d0a10;
+}
 
 .phone-row {
   display: flex;
@@ -278,17 +290,17 @@ h1, h2, .statement, .lede {
 }
 
 .phone-shot {
-  height: min(68vh, 540px);
+  height: min(38vh, 320px);
   width: auto !important;
   flex: none;
   border: 1px solid var(--line);
   background: #fff;
 }
 
-.prose { max-width: 42rem; }
+.prose { max-width: 48rem; font-size: 1.2rem; }
 .prose h2 {
-  font-size: 1.8rem;
-  margin: 2rem 0 0.6rem;
+  font-size: 1.85rem;
+  margin: 1.8rem 0 0.55rem;
 }
 .prose p { color: var(--ink); }
 .prose a { color: var(--gold); }
@@ -367,12 +379,13 @@ h1, h2, .statement, .lede {
 .schools span { color: var(--gold); font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em; }
 .schools p { margin: 0.3rem 0 0; color: var(--muted); }
 .about h2 { font-family: var(--serif); font-weight: 460; font-size: 1.8rem; }
-.about > p { max-width: 42rem; }
+.about > p { max-width: 48rem; }
 
 @media (max-width: 800px) {
   .mast { flex-wrap: wrap; }
-  .codex { padding: 1.4rem 1.1rem 15rem; }
+  .codex { width: auto; padding: 1.4rem 1.1rem 15rem; }
   .plates { grid-template-columns: 1fr; }
+  .plate-art { max-height: 11rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
