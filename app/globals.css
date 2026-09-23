@@ -362,12 +362,14 @@ h1, h2, .statement, .lede {
 .prose h2 {
   font-size: 1.85rem;
   margin: 1.8rem 0 0.55rem;
+  color: #d4b483;
 }
 .prose h3 {
   font-family: var(--serif);
   font-weight: 460;
   font-size: 1.35rem;
   margin: 1.3rem 0 0.35rem;
+  color: #d4b483;
 }
 
 .reel {
@@ -637,7 +639,7 @@ h1, h2, .statement, .lede {
 .schools strong { display: block; font-family: var(--serif); font-size: 1.4rem; font-weight: 460; }
 .schools span { color: var(--gold); font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em; }
 .schools p { margin: 0.3rem 0 0; color: var(--muted); }
-.about h2 { font-family: var(--serif); font-weight: 460; font-size: 1.8rem; }
+.about h2 { font-family: var(--serif); font-weight: 460; font-size: 1.8rem; color: #d4b483; }
 .about > p { max-width: none; }
 
 @media (max-width: 800px) {
