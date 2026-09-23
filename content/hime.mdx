@@ -2,47 +2,55 @@ import { HimeDiagram } from "@/components/HimeDiagram";
 
 ## Who she is
 
-Hime is a companion who lives on the same computer as the person she talks to. The project began from Neuro-sama: a character who speaks quickly, keeps a longer mind behind the voice, and drives her own face. Hime is not a public stream. She is written as my younger sister. A little tsundere, sharp when she wants to be, and easy to like. She knows she is an AI. In ordinary talk she does not lecture about it.
+Hime is a companion who lives on the same computer as the person she talks to. The project started from Neuro-sama: speech, a longer mind behind the voice, and a face that is actually driven. Hime is not a public stream. She is written as my younger sister. A little tsundere, sharp when she wants to be, and easy to like. She knows she is an AI. In ordinary talk she does not lecture about it. That fact comes up, lightly, only when the conversation is about her own machinery.
 
-The face on screen is a Live2D model a friend licensed to me, and only so the system can be shown working. The contributor is 椰蓉球.
+The Live2D model is used with permission from a friend, and only so the system can be shown working. The contributor is 椰蓉球.
+
+The first version was written with Gemini: language, memory, and control of the virtual face. The work then moved to Cursor. Those three parts were tightened there, and the vision module was written in that second pass.
 
 <HimeDiagram />
 
-## How she was made
+## One queue
 
-The first version was written with Gemini. That pass covered the language, the memory, and the control of the virtual face. The work then moved to Cursor. Earlier problems in those three parts were tightened there, and the vision module was written in that second pass.
+The microphone, the keyboard, and the screen used to be separate calls into the brain. Hime now has one priority queue. A spoken line, a typed line, and a note from the screen are the same kind of event. The person's voice is the highest priority. When they start talking, a waiting comment from the screen is cleared, and playback of her own line can be stopped. Echo from the speakers is ignored while she is the one speaking, so her voice is not transcribed back in as a new question. A slot is already reserved for audience chat. Nothing publishes into it yet.
 
-## Why the system holds together
+Hearing is Whisper large v3. Chinese, English, and Japanese are detected from the utterance, then checked against the letters, so a short line that merely contains the name Hime is not pulled into English by mistake. Noise, and a lone hallucinated phrase, are dropped. A real sentence that happens to contain those words is kept. One utterance may run up to a minute. The end of a turn is a short silence, about a third of a second, not a hard cut in the middle of a long thought. A typed line joins the same queue, and its language is guessed from the text.
 
-A companion falls apart when the microphone, the screen, and the face each talk on their own schedule. Hime has one queue. A spoken line, a typed line, and a note from the screen all enter the same place. The person's voice is the highest priority. When they start talking, a waiting comment from the screen is cleared, and her own playback can be interrupted.
+The reply is one streamed model. An earlier design spoke a short lead-in from a fast model and then handed the rest to a slower one. The two clocks drifted whenever either model changed, and the gap was audible. One model removes the handoff. Clauses are cut on punctuation as they arrive and sent to speech immediately, so the voice starts while the rest of the line is still being written. A fragment that is only punctuation is absorbed into the next clause, instead of becoming a near-silent request.
 
-The reply is one streamed model, not a short lead-in handed to a second model. Sentences leave for speech as soon as the punctuation arrives, so the voice starts while the rest of the line is still being written. Emotion is a tag she has to emit, mapped onto the avatar. The mouth follows the loudness of her own voice, and the vowel shape follows the text that was just spoken. Silence keeps the mouth closed.
+## A trained voice
 
-## Voice
+The speaking voice is a local GPT-SoVITS timbre, trained for this character rather than taken from a stock narrator. At synthesis time each request carries a reference recording of that voice and the transcript of the clip, which is what holds the timbre in place. Chinese, English, and Japanese can each keep their own reference. Until an English or Japanese reference of the same speaker is filled in, those segments reuse the Chinese clip through cross-lingual synthesis. The name Hime is always split out and voiced on the Japanese path, because the name does not change pronunciation with the sentence around it.
 
-The microphone is transcribed with Whisper. Chinese, English, and Japanese are detected from the utterance. Noise and a lone hallucinated phrase are dropped. A typed line joins the same queue, and its language is guessed from the letters.
-
-Speech is a local GPT-SoVITS voice. A mixed sentence is split by script, each piece is synthesized in its own language, and the pieces are crossfaded so a language change does not click. The name Hime is always voiced from the Japanese reference. Words inside parentheses are stage directions. They change what she does. They are not spoken.
+A mixed sentence is split by script. Every segment is requested at once, edge silence is trimmed, and the pieces are crossfaded into one clip, so a change of language does not click. Words inside parentheses are stage directions. They are stripped before synthesis, including a bracket that is still open at the end of one streamed clause. The next clause inherits that state, so an action is not suddenly read aloud. Playback can be interrupted the moment the person starts talking.
 
 ## Memory
 
-Chat memory sits in ChromaDB, embedded with a text model, and each entry keeps a real date and time. Long notes are cut on sentence boundaries before they are stored. Small talk and a restatement of who she already is stay out of the bank. A later reply can pull back the entries that match.
+After a turn, a second, colder pass reads the exchange and keeps only a new event: a plan, a preference, an appointment. Small talk, and a restatement of who she already is, comes back as nothing and is not stored. What is kept is stamped with the real date and time, cut on sentence boundaries, and embedded with M3E into a ChromaDB collection. A later reply can retrieve the entries that match.
 
-What she sees is a second collection, embedded with CLIP, so a short visual note can be found again without being mixed into the chat bank.
+What she sees is a second collection, embedded with CLIP, so a short visual note can be found again without being mixed into the chat bank. Near-duplicate descriptions are dropped. On a still page the filter is strict. In a game or a video it is looser, because two similar sentences can be a fight that has actually moved.
 
 ## The face
 
-VTube Studio is driven through its plugin API. The five emotion tags map to expression hotkeys. A separate list of words in her own dialogue can fire a gesture, and that gesture starts when the audio of that line starts, not when the text is generated. Toggle expressions share one ledger, so a face she turned on is the face that gets turned off when the turn ends.
+On connection, VTube Studio returns every hotkey the loaded model publishes: expressions, gestures, one-shot animations, and the toggles for hair, clothes, and accessories. Hime caches that full list, with the type the studio reports, and checks every configured name against it. A missing name is printed at startup instead of failing in silence later. Any of those hotkeys can be opened or closed through one ledger. A toggle that is already on is not triggered again, because a second trigger would turn it off. A one-shot animation is left alone. When the turn ends, every toggle she opened is closed, whether it came from an emotion tag or from a word in the line.
 
-While she is quiet, the head idles: a slow random drift, a light breath, a blink, and an occasional small bounce. The size of that motion follows her mood and how loud she is. Lip sync uses the loudness of the generated audio for how far the mouth opens, and a vowel timeline, built from the same text, for the shape. A silence gate on the model opens only while she is actually voicing.
+Five emotion tags, which the reply must emit, map onto expressions on this model: a heart-eyed look, anger, crying, a shocked sweat, and a neutral that clears the slot. Separately, words in her own dialogue fire a wider set of preset reactions: blushing, a blank stare, leaning in, holding a cat, a drink, a small crown, eyes lighting up. The gesture starts when the audio of that clause starts, not when the text is generated, so it lands on the word. Several words in one clause can fire in order. The same hotkey fires once. Hair, outfit, and accessory toggles are in the same catalog, validated against the model, and deliberately left without keywords. A casual sentence should not leave her in a costume she cannot take off.
+
+While she is quiet the head still moves. Each angle walks toward a new random target every fraction of a second, with a light breath and an occasional small bounce, instead of looping one sine wave. The size of that motion follows the current mood and how loud she is. Happy and shock open the movement up. Sadness quiets it.
+
+The mouth is driven from her own audio, not from the microphone, so headphones do not close it. Loudness sets how far it opens. The shape is a vowel timeline built from the exact text sent to speech: pinyin for Chinese, a kana row for Japanese, a letter scan for Latin. The name Hime falls out of that scan as i, then e. The vowels are spread across the length of the clip and advanced by the same clock as the loudness, so a shape is active only while its audio is playing. A silence gate on the model, the switch between the default mouth and the vowel blend shapes, is the inverse of that loudness. Silence keeps the mouth closed and the gate shut.
 
 ## The screen
 
-A watcher reads the focused window about once a second. Overwatch, a code editor, and a browser are different modes. In an editor she can read the text in front of her. A game frame can be cut into regions for health, an ultimate, and a kill feed. Those regions are still being aimed. The browser mode is recognized and left open. Notes from the screen can enter the same queue as speech. The diary itself stays on the machine. It is not published here.
+A local loop grabs the display about five times a second. It does not send every frame to a model. A small grayscale difference against the previous tick decides whether the picture is actually changing, and that decision is remembered for about three seconds, so one flicker does not have to land on the exact sample.
 
-## What comes next
+The focused window picks the scene. The keyword lists live in configuration: a game, a video player or a video site, a code editor, a browser, or idle. Video is tested before the generic browser list, so a tab that is playing a video is not classified as a page of text. Adding another title is a line in that list.
 
-The next training is for games. The aim is a model that understands the rules, and then hands that can play the character, not only comment on the screen.
+Each scene has its own rate and its own question. Idle backs off to about fifteen seconds. A still page is about six. A game, or a video that is actually moving, tightens to about two and a half seconds, and falls back if the video is paused. An editor does not use screenshots at all. UI Automation reads the text in the editor about every two seconds, which is faster and does not spend a vision call on a picture of code.
+
+A game or a moving video is not described from one frozen frame. Three recent frames, about four fifths of a second apart, go out together, oldest first, and the prompt asks what is changing across them. A game prompt asks for the title, the moment, and anything urgent. A page prompt asks for the topic and the kind of content. A paused video gets a single frame. The notes are written as a short diary on the machine and embedded for later retrieval. They are not published on this site.
+
+A separate pixel path is reserved for a calibrated game: health, an ultimate, a kill feed. Those regions are not filled in, because a wrong coordinate is a detector that never fires. Until a session is measured, the general vision model is the path that works for any title. The next training is the one that lets her understand the rules, and then play the character, rather than only describe the screen.
 
 ## On this website
 
