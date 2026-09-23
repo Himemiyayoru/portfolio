@@ -68,7 +68,7 @@ h1, h2, .statement, .lede {
 .plate-index,
 .hime-button span,
 .hime-hint,
-.score span,
+.score > figcaption > span,
 .spine span {
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -372,9 +372,14 @@ h1, h2, .statement, .lede {
   flex-direction: column;
   min-height: 0;
 }
-.score-singer .hime-portrait {
+.score-stage-slot {
+  position: relative;
   width: 100%;
   height: min(68vh, 36rem);
+}
+.score-stage-slot .hime-portrait {
+  width: 100%;
+  height: 100%;
   aspect-ratio: auto;
 }
 .score-play {
@@ -402,12 +407,16 @@ h1, h2, .statement, .lede {
   padding-right: 0.4rem;
 }
 .score-lyrics p { margin: 0 0 1rem; }
-.score-line {
+.score-lyrics .score-line {
   display: block;
-  margin: 0.28rem 0;
+  margin: 0.35rem 0;
   color: var(--muted);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
-.score-line.is-current { color: var(--gold); }
+.score-lyrics .score-line.is-current { color: var(--gold); }
 
 .spine {
   list-style: none;
@@ -483,7 +492,7 @@ h1, h2, .statement, .lede {
   .plate-art { max-height: 11rem; }
   .gallery { grid-template-columns: 1fr; }
   .score-stage { grid-template-columns: 1fr; }
-  .score-singer .hime-portrait { height: 22rem; }
+  .score-stage-slot { height: 22rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
