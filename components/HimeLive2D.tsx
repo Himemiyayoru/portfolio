@@ -375,18 +375,10 @@ function registerSeat(seat: Seat) {
         draw(gl);
         gl.disable(gl.SCISSOR_TEST);
       };
-      if (!seat.followCursor) {
-        const events = loaded.internalModel as unknown as { on: (name: string, fn: () => void) => void };
-        events.on("beforeModelUpdate", () => {
-          const pose = seat.getPose();
-          const core = loaded.internalModel.coreModel;
-          // Physics turns the torso from AngleX and barely moves the face. Write the head after physics.
-          core.setParameterValueById("ParamAngleX2", pose.x);
-          core.setParameterValueById("ParamAngleY2", pose.y);
-          core.setParameterValueById("ParamAngleZ2", pose.z);
-          core.setParameterValueById("ParamAngleXX", pose.x * 0.55);
-        });
-      }
+      // Only the primary Angle/BodyAngle parameters are written here (in applyPose). The
+      // model's own physics.evaluate() turns those into the secondary sway (X2, Y2, Z2, XX,
+      // BodyAngleX1...). Writing those secondary outputs a second time fought the physics
+      // simulation every frame and looked like a twitch instead of a sway.
       const update = loaded.internalModel.update.bind(loaded.internalModel);
       loaded.internalModel.update = (dt, now) => {
         applyPose(loaded.internalModel.coreModel, seat.getPose(), seat.getEmotion());

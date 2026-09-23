@@ -43,13 +43,33 @@ function band(data: Uint8Array, sampleRate: number, low: number, high: number) {
   return count ? sum / count : 0;
 }
 
-function levelOf(samples: Uint8Array) {
+function rmsOf(samples: Float32Array) {
   let energy = 0;
-  for (let i = 0; i < samples.length; i += 1) {
-    const sample = (samples[i] - 128) / 128;
-    energy += sample * sample;
-  }
+  for (let i = 0; i < samples.length; i += 1) energy += samples[i] * samples[i];
   return Math.sqrt(energy / samples.length);
+}
+
+/** How periodic the signal is inside a sung-vowel pitch range, 0..~1. */
+function pitchConfidence(samples: Float32Array, sampleRate: number, minHz: number, maxHz: number) {
+  const length = samples.length;
+  let energy = 0;
+  for (let i = 0; i < length; i += 1) energy += samples[i] * samples[i];
+  if (energy < 1e-7) return 0;
+  const minLag = Math.max(2, Math.floor(sampleRate / maxHz));
+  const maxLag = Math.min(length - 2, Math.floor(sampleRate / minHz));
+  let best = -Infinity;
+  for (let lag = minLag; lag <= maxLag; lag += 2) {
+    let correlation = 0;
+    let count = 0;
+    for (let i = 0; i < length - lag; i += 3) {
+      correlation += samples[i] * samples[i + lag];
+      count += 1;
+    }
+    correlation /= count;
+    if (correlation > best) best = correlation;
+  }
+  const norm = energy / length;
+  return norm > 0 ? Math.max(0, best / norm) : 0;
 }
 
 /** Melodic centroid in Hz, or 0 when that band is quiet. */
@@ -73,8 +93,8 @@ export function Soundtrack() {
   const figureRef = useRef<HimeHandle>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const melodyRef = useRef<AnalyserNode | null>(null);
-  const voiceRef = useRef<AnalyserNode | null>(null);
-  const bassRef = useRef<AnalyserNode | null>(null);
+  const midRef = useRef<AnalyserNode | null>(null);
+  const sideRef = useRef<AnalyserNode | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
   const playingRef = useRef(false);
   const scrubbingRef = useRef(false);
@@ -89,20 +109,17 @@ export function Soundtrack() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const freq = new Uint8Array(1024);
-    const voiceTime = new Uint8Array(1024);
-    const bassTime = new Uint8Array(1024);
+    const midTime = new Float32Array(2048);
+    const sideTime = new Float32Array(2048);
     let frame = 0;
     let mouth = 0;
-    let mouthTarget = 0;
     let poseX = 0;
     let poseY = 0;
     let poseZ = 0;
-    let pitch = 640;
-    let pitchCenter = 640;
-    let energyAvg = 0.15;
-    let prevVoice = 0;
-    let lastSyllable = 0;
-    let nod = 0;
+    let pitchEma = 640;
+    let pitchFloor = 640;
+    let energyEma = 0.15;
+    let energyFloor = 0.15;
     const started = performance.now() / 1000;
 
     const tick = (nowMs: number) => {
@@ -110,58 +127,49 @@ export function Soundtrack() {
       const audio = audioRef.current;
       const singing = playingRef.current && audio !== null && !audio.paused;
       const quiet = reduce.matches;
-      let syllable = false;
-      if (singing && !quiet && contextRef.current && voiceRef.current && bassRef.current) {
-        voiceRef.current.getByteTimeDomainData(voiceTime);
-        bassRef.current.getByteTimeDomainData(bassTime);
-        const voice = levelOf(voiceTime);
-        const bass = levelOf(bassTime);
-        if (elapsed - lastSyllable > 0.05) {
-          const flux = Math.max(0, voice - prevVoice);
-          prevVoice = voice;
-          lastSyllable = elapsed;
-          // A lyric syllable jumps in the voice band. A pad, a bass note, or a drum does not.
-          if (flux > 0.005 && voice > 0.03 && voice > bass * 0.75) {
-            mouthTarget = Math.min(1, 0.42 + flux * 28);
-            syllable = true;
-          }
-        }
-      } else {
-        mouthTarget = 0;
-        prevVoice = 0;
-      }
-      mouthTarget *= singing && !quiet ? 0.985 : 0.9;
-      mouth += (mouthTarget - mouth) * 0.45;
 
-      let targetX = Math.sin(elapsed * 0.55) * 6;
-      let targetY = Math.sin(elapsed * 0.42) * 5;
-      let targetZ = Math.sin(elapsed * 0.31) * 4;
+      // Mouth: only the centered voice, and only while it is singing a pitch, not the panned
+      // accompaniment. A drum hit or a bass note is either off-center or has no stable pitch here.
+      let mouthTarget = 0;
+      if (singing && !quiet && contextRef.current && midRef.current && sideRef.current) {
+        const rate = contextRef.current.sampleRate;
+        midRef.current.getFloatTimeDomainData(midTime);
+        sideRef.current.getFloatTimeDomainData(sideTime);
+        const midLevel = rmsOf(midTime);
+        const sideLevel = rmsOf(sideTime);
+        const confidence = pitchConfidence(midTime, rate, 150, 650);
+        const centered = midLevel / (midLevel + sideLevel * 1.3 + 1e-6);
+        const vocalScore = confidence * centered;
+        if (vocalScore > 0.32 && midLevel > 0.012) {
+          mouthTarget = Math.min(1, midLevel * 7);
+        }
+      }
+      mouth += (mouthTarget - mouth) * (mouthTarget > mouth ? 0.55 : 0.24);
+
+      // Body: a slow, continuous sway. The melody's pitch trend lifts the head, its loudness
+      // trend adds a little more swing, both eased in gently so nothing snaps frame to frame.
+      let lift = 0;
+      let swell = 0;
       if (singing && !quiet && melodyRef.current && contextRef.current) {
         const rate = contextRef.current.sampleRate;
         melodyRef.current.getByteFrequencyData(freq);
         const hz = melodyHz(freq, rate);
-        if (hz > 0) {
-          pitch += (hz - pitch) * 0.2;
-          pitchCenter += (pitch - pitchCenter) * 0.012;
-        }
-        const lift = Math.max(-1, Math.min(1, (pitch - pitchCenter) / 220));
-        const energy = band(freq, rate, 240, 1800);
-        energyAvg += (energy - energyAvg) * 0.03;
-        const swell = Math.max(-1, Math.min(1, (energy - energyAvg) * 7));
-        if (syllable) nod = 8;
-        else nod *= 0.94;
-        targetX = lift * 11 + swell * 7;
-        targetY = lift * 18 + swell * 6 + nod;
-        targetZ = lift * -14 + swell * 4;
-      } else if (quiet) {
-        targetX = 0;
-        targetY = 0;
-        targetZ = 0;
+        if (hz > 0) pitchEma += (hz - pitchEma) * 0.08;
+        pitchFloor += (pitchEma - pitchFloor) * 0.01;
+        lift = Math.max(-1, Math.min(1, (pitchEma - pitchFloor) / 220));
+        const energyRaw = band(freq, rate, 240, 1800);
+        energyEma += (energyRaw - energyEma) * 0.12;
+        energyFloor += (energyEma - energyFloor) * 0.01;
+        swell = Math.max(-1, Math.min(1, (energyEma - energyFloor) * 6));
       }
+      const idle = quiet ? 0 : 1;
+      const targetX = idle * (Math.sin(elapsed * 0.5) * 4 + lift * 8 + swell * 4);
+      const targetY = idle * (Math.sin(elapsed * 0.37) * 3 + lift * 14 + swell * 5);
+      const targetZ = idle * (Math.sin(elapsed * 0.29) * 3 - lift * 10 + swell * 3);
 
-      poseX += (targetX - poseX) * (singing ? 0.08 : 0.06);
-      poseY += (targetY - poseY) * (singing ? 0.34 : 0.08);
-      poseZ += (targetZ - poseZ) * (singing ? 0.24 : 0.08);
+      poseX += (targetX - poseX) * 0.07;
+      poseY += (targetY - poseY) * 0.07;
+      poseZ += (targetZ - poseZ) * 0.07;
       figureRef.current?.setFrame?.("bust");
       figureRef.current?.setPose({
         x: poseX,
@@ -208,29 +216,49 @@ export function Soundtrack() {
       melody.smoothingTimeConstant = 0.72;
       source.connect(melody);
 
-      const voiceFilter = context.createBiquadFilter();
-      voiceFilter.type = "bandpass";
-      voiceFilter.frequency.value = 1800;
-      voiceFilter.Q.value = 1.2;
-      const voice = context.createAnalyser();
-      voice.fftSize = 1024;
-      voice.smoothingTimeConstant = 0;
-      source.connect(voiceFilter);
-      voiceFilter.connect(voice);
+      // Suno mixes tend to place the lead vocal dead center. Reconstructing mid (L+R) and
+      // side (L-R) and comparing them tells sung lines apart from panned instruments.
+      const splitter = context.createChannelSplitter(2);
+      source.connect(splitter);
+      const left = context.createGain();
+      left.gain.value = 0.5;
+      const rightPos = context.createGain();
+      rightPos.gain.value = 0.5;
+      const rightNeg = context.createGain();
+      rightNeg.gain.value = -0.5;
+      splitter.connect(left, 0);
+      splitter.connect(rightPos, 1);
+      splitter.connect(rightNeg, 1);
 
-      const bassFilter = context.createBiquadFilter();
-      bassFilter.type = "lowpass";
-      bassFilter.frequency.value = 120;
-      const bass = context.createAnalyser();
-      bass.fftSize = 1024;
-      bass.smoothingTimeConstant = 0;
-      source.connect(bassFilter);
-      bassFilter.connect(bass);
+      const midSum = context.createGain();
+      left.connect(midSum);
+      rightPos.connect(midSum);
+      const sideSum = context.createGain();
+      left.connect(sideSum);
+      rightNeg.connect(sideSum);
+
+      const midHighpass = context.createBiquadFilter();
+      midHighpass.type = "highpass";
+      midHighpass.frequency.value = 150;
+      const sideHighpass = context.createBiquadFilter();
+      sideHighpass.type = "highpass";
+      sideHighpass.frequency.value = 150;
+      midSum.connect(midHighpass);
+      sideSum.connect(sideHighpass);
+
+      const mid = context.createAnalyser();
+      mid.fftSize = 2048;
+      mid.smoothingTimeConstant = 0;
+      midHighpass.connect(mid);
+      const side = context.createAnalyser();
+      side.fftSize = 2048;
+      side.smoothingTimeConstant = 0;
+      sideHighpass.connect(side);
 
       contextRef.current = context;
       melodyRef.current = melody;
-      voiceRef.current = voice;
-      bassRef.current = bass;
+      midRef.current = mid;
+      sideRef.current = side;
     }
     await contextRef.current.resume();
     if (audio.paused) {
