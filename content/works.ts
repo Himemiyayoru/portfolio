@@ -72,37 +72,12 @@ export const works: Work[] = [
     plate: "A phone that turns a recipe change into a glass you can see.",
     tone: "amber",
     frame: "phone",
-    images: [
-      {
-        src: "/work/bobs-special-blend/library.jpg",
-        alt: "The cocktail library, with drinks grouped by family.",
-        width: 900,
-        height: 1950,
-      },
-      {
-        src: "/work/bobs-special-blend/physics.jpg",
-        alt: "Physics lab for a layered B-52, with ABV, Brix, and volume.",
-        width: 900,
-        height: 1950,
-      },
-      {
-        src: "/work/bobs-special-blend/matches.jpg",
-        alt: "Match results from a home cabinet: perfect matches and drinks one bottle away.",
-        width: 900,
-        height: 1950,
-      },
-      {
-        src: "/work/bobs-special-blend/bob.jpg",
-        alt: "Ask Bob, the bartender, recommending a B-52.",
-        width: 900,
-        height: 1950,
-      },
-    ],
-    video: {
-      src: "/work/bobs-special-blend/loop.mp4",
-      width: 720,
-      height: 1560,
-      label: "Silent loop of the library.",
+    images: [],
+    cover: {
+      src: "/work/bobs-special-blend/library.jpg",
+      alt: "The cocktail library, with drinks grouped by family.",
+      width: 900,
+      height: 1950,
     },
   },
   {
