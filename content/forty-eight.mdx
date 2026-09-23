@@ -1,0 +1,21 @@
+import { Spine } from "@/components/Spine";
+
+## What I made
+
+This is an automated trading experiment, rewritten forty-eight times. Backtests were run. Paper trading was run. A stable advantage over simply holding the market did not appear.
+
+<Spine />
+
+The first versions asked a language model to place trades, and filled the missing forecast with randomness. The result could not be repeated, so the decision became a trainable environment. The agent could satisfy the reward and still not learn a price.
+
+Later versions split prediction from execution. A gradient booster, a small transformer, a frozen pretrained model, then a forecasting model with a light adapter. An execution policy can only amplify a signal. After costs, the signal was not there.
+
+The last stretch added memory, a message bus, and a simulator that charges fees and includes impact and delay. The trained policy and the path that would have traded were still not the same decision.
+
+## The constraint
+
+When the story the system tells is false, the next version has to admit it. Adding routers, memory, and a fleet did not create an edge that the data did not have.
+
+## Next
+
+A baseline that includes fees, can be repeated, and is split by market regime — before another execution head.

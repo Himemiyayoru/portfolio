@@ -1,0 +1,142 @@
+import type { LineId } from "@/content/lines";
+
+export type GalleryImage = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+};
+
+export type Work = {
+  slug: LineId;
+  title: string;
+  status: "Shipped" | "In the lab";
+  year: string;
+  role: string;
+  lede: string;
+  plate: string;
+  tone: "crimson" | "amber" | "night";
+  frame: "wide" | "phone";
+  images: GalleryImage[];
+  video?: {
+    src: string;
+    width: number;
+    height: number;
+    label: string;
+  };
+  score?: {
+    title: string;
+    src: string;
+    links: { label: string; href: string }[];
+  };
+};
+
+export const works: Work[] = [
+  {
+    slug: "crimson-moon",
+    title: "Crimson Moon",
+    status: "Shipped",
+    year: "2026",
+    role: "Game, art, sound",
+    lede: "A tarot werewolf for a player who would rather not face a crowd. AI maidens hold the other seats. Upright cards keep the village. Reversed cards are the witches.",
+    plate: "Werewolf, with tarot, for a player who does not want a crowd.",
+    tone: "crimson",
+    frame: "wide",
+    images: [
+      {
+        src: "/work/crimson-moon/menu.jpg",
+        alt: "Crimson Moon title screen, a red moon over a city of spires.",
+        width: 1400,
+        height: 1151,
+      },
+      {
+        src: "/work/crimson-moon/trial.jpg",
+        alt: "Public trial at dusk, with portraits around the table and a spoken claim.",
+        width: 1400,
+        height: 1151,
+      },
+      {
+        src: "/work/crimson-moon/codex.jpg",
+        alt: "Major Arcana Codex listing upright and reversed abilities.",
+        width: 1400,
+        height: 1151,
+      },
+    ],
+    score: {
+      title: "Judgment Dusk",
+      src: "/work/crimson-moon/judgment-dusk.mp3",
+      links: [],
+    },
+  },
+  {
+    slug: "bobs-special-blend",
+    title: "Bob's Special Blend",
+    status: "Shipped",
+    year: "2026",
+    role: "Product, mobile, local models",
+    lede: "A phone for mixing drinks that shows the glass change when the recipe does.",
+    plate: "A phone that turns a recipe change into a glass you can see.",
+    tone: "amber",
+    frame: "phone",
+    images: [
+      {
+        src: "/work/bobs-special-blend/library.jpg",
+        alt: "The cocktail library, with drinks grouped by family.",
+        width: 900,
+        height: 1950,
+      },
+      {
+        src: "/work/bobs-special-blend/physics.jpg",
+        alt: "Physics lab for a layered B-52, with ABV, Brix, and volume.",
+        width: 900,
+        height: 1950,
+      },
+      {
+        src: "/work/bobs-special-blend/matches.jpg",
+        alt: "Match results from a home cabinet: perfect matches and drinks one bottle away.",
+        width: 900,
+        height: 1950,
+      },
+      {
+        src: "/work/bobs-special-blend/bob.jpg",
+        alt: "Ask Bob, the bartender, recommending a B-52.",
+        width: 900,
+        height: 1950,
+      },
+    ],
+    video: {
+      src: "/work/bobs-special-blend/loop.mp4",
+      width: 720,
+      height: 1560,
+      label: "Silent loop of the library.",
+    },
+  },
+  {
+    slug: "hime",
+    title: "Hime",
+    status: "In the lab",
+    year: "2026",
+    role: "Character systems",
+    lede: "A desktop companion with a voice, a memory, and a face. The public page is the character system. The private diary stays private.",
+    plate: "Voice, memory, and a face. Vision is still being tuned.",
+    tone: "night",
+    frame: "wide",
+    images: [],
+  },
+  {
+    slug: "forty-eight",
+    title: "Forty-eight versions",
+    status: "In the lab",
+    year: "2026",
+    role: "Research system",
+    lede: "An automated trading experiment, rewritten forty-eight times. Backtests and paper runs both happened. A stable edge over buy-and-hold did not.",
+    plate: "Forty-eight rewrites. The edge never stabilized.",
+    tone: "night",
+    frame: "wide",
+    images: [],
+  },
+];
+
+export function getWork(slug: string) {
+  return works.find((work) => work.slug === slug);
+}
