@@ -47,6 +47,7 @@ type LiveModel = {
   anchor: { set: (x: number, y: number) => void };
   position: { set: (x: number, y: number) => void };
   interactive: boolean;
+  autoInteract?: boolean;
   destroy: () => void;
   internalModel: {
     width: number;
@@ -241,9 +242,7 @@ const HimeLive2D = forwardRef<
           }
           app = view as unknown as NonNullable<typeof app>;
           host.appendChild(view.view as HTMLCanvasElement);
-          const loaded = (await Live2DModel.from(url, { autoInteract: followCursor })) as unknown as LiveModel & {
-            autoInteract?: boolean;
-          };
+          const loaded = (await Live2DModel.from(url, { autoInteract: followCursor })) as unknown as LiveModel;
           if (cancelled) {
             loaded.destroy();
             return;
