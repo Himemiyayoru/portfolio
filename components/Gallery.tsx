@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GalleryImage } from "@/content/works";
 
 export function Gallery({
@@ -14,7 +14,15 @@ export function Gallery({
   frame?: "wide" | "phone";
 }) {
   const [open, setOpen] = useState<number | null>(null);
+  const clip = useRef<HTMLVideoElement>(null);
   const shot = open === null ? null : images[open];
+
+  useEffect(() => {
+    const node = clip.current;
+    if (!node) return;
+    node.muted = true;
+    void node.play().catch(() => {});
+  }, [video?.src]);
 
   useEffect(() => {
     if (open === null) return;
@@ -30,11 +38,14 @@ export function Gallery({
     };
   }, [open]);
 
+  const solo = Boolean(video) && images.length === 0;
+
   return (
     <>
-      <div className={frame === "phone" ? "gallery phone" : "gallery"}>
+      <div className={[frame === "phone" ? "gallery phone" : "gallery", solo ? "gallery-solo" : ""].filter(Boolean).join(" ")}>
         {video ? (
           <video
+            ref={clip}
             className="gallery-video"
             src={video.src}
             width={video.width}

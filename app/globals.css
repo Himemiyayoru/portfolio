@@ -284,6 +284,10 @@ h1, h2, .statement, .lede {
   margin: 0 0 1.3rem;
 }
 
+.gallery-solo {
+  grid-template-columns: 1fr;
+}
+
 .shot {
   display: block;
   width: 100%;

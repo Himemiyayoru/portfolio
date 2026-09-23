@@ -18,6 +18,7 @@ export type Work = {
   tone: "crimson" | "amber" | "night";
   frame: "wide" | "phone";
   images: GalleryImage[];
+  cover?: GalleryImage;
   video?: {
     src: string;
     width: number;
@@ -42,26 +43,19 @@ export const works: Work[] = [
     plate: "Werewolf, with tarot, for a player who does not want a crowd.",
     tone: "crimson",
     frame: "wide",
-    images: [
-      {
-        src: "/work/crimson-moon/menu.jpg",
-        alt: "Crimson Moon title screen, a red moon over a city of spires.",
-        width: 1400,
-        height: 1151,
-      },
-      {
-        src: "/work/crimson-moon/trial.jpg",
-        alt: "Public trial at dusk, with portraits around the table and a spoken claim.",
-        width: 1400,
-        height: 1151,
-      },
-      {
-        src: "/work/crimson-moon/codex.jpg",
-        alt: "Major Arcana Codex listing upright and reversed abilities.",
-        width: 1400,
-        height: 1151,
-      },
-    ],
+    images: [],
+    cover: {
+      src: "/work/crimson-moon/menu.jpg",
+      alt: "Crimson Moon title screen, a red moon over a city of spires.",
+      width: 1400,
+      height: 1151,
+    },
+    video: {
+      src: "/work/crimson-moon/showcase.mp4",
+      width: 1600,
+      height: 900,
+      label: "Silent showcase of Crimson Moon.",
+    },
     score: {
       title: "Judgment Dusk",
       src: "/work/crimson-moon/judgment-dusk.mp3",
