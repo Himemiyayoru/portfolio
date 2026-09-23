@@ -88,14 +88,14 @@ h1, h2, .statement, .lede {
 .mast nav a:hover { color: var(--gold); }
 
 .codex {
-  width: min(72rem, calc(100% - 13rem));
-  padding: 2.2rem 1.6rem 7rem 2rem;
+  width: calc(100% - 13.25rem);
+  padding: 2.2rem 1.4rem 7rem 2rem;
 }
 
 .statement {
   font-size: clamp(2.15rem, 3.2vw, 3rem);
   line-height: 1.2;
-  max-width: 22em;
+  max-width: none;
   margin: 0.4rem 0 1.6rem;
 }
 
@@ -265,39 +265,88 @@ h1, h2, .statement, .lede {
 
 .lede {
   font-size: 1.45rem;
-  max-width: 46rem;
+  max-width: none;
   margin: 0 0 1.4rem;
 }
 
-.wide-still { max-width: 40rem; margin: 0 0 0.8rem; }
-.wide-still img {
+.gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 0 1.3rem;
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  line-height: 0;
+  cursor: zoom-in;
+  color: inherit;
+}
+
+.shot img,
+.gallery-video {
   width: 100%;
   height: auto;
-  max-height: 22rem;
-  object-fit: contain;
-  object-position: left center;
   display: block;
+}
+
+.gallery-video {
   border: 1px solid var(--line);
   background: #0d0a10;
 }
 
-.phone-row {
-  display: flex;
-  gap: 0.8rem;
-  overflow-x: auto;
-  padding-bottom: 0.6rem;
-  margin-bottom: 1rem;
+.gallery.phone { justify-items: center; }
+.gallery.phone .shot,
+.gallery.phone .gallery-video {
+  width: auto;
+  max-width: 100%;
+}
+.gallery.phone .shot img,
+.gallery.phone .gallery-video {
+  width: auto;
+  height: min(58vh, 32rem);
+  max-width: 100%;
 }
 
-.phone-shot {
-  height: min(38vh, 320px);
-  width: auto !important;
-  flex: none;
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 2.5rem 2rem 2rem;
+  background: rgba(8, 6, 10, 0.9);
+}
+
+.lightbox img {
+  max-width: min(94vw, 1600px);
+  max-height: 86vh;
+  width: auto;
+  height: auto;
   border: 1px solid var(--line);
-  background: #fff;
 }
 
-.prose { max-width: 48rem; font-size: 1.2rem; }
+.lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(18, 14, 20, 0.94);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+}
+
+.prose { max-width: none; font-size: 1.2rem; }
 .prose h2 {
   font-size: 1.85rem;
   margin: 1.8rem 0 0.55rem;
@@ -306,13 +355,59 @@ h1, h2, .statement, .lede {
 .prose a { color: var(--gold); }
 
 .score {
-  margin: 1.2rem 0;
-  padding: 0.9rem 1rem;
+  margin: 1.4rem 0;
+  padding: 0.9rem 1rem 1rem;
   border: 1px solid var(--line);
 }
-.score p { margin: 0.35rem 0 0.7rem; color: var(--muted); }
-.score audio { width: min(100%, 28rem); }
-.score ul { padding-left: 1.1rem; }
+.score > p { margin: 0.7rem 0 0; color: var(--muted); }
+.score audio { display: none; }
+.score-stage {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.85fr) 1.15fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+.score-singer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.score-singer .hime-portrait {
+  width: 100%;
+  height: min(68vh, 36rem);
+  aspect-ratio: auto;
+}
+.score-play {
+  align-self: center;
+  margin-top: 0.7rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.4rem;
+  cursor: pointer;
+}
+.score-play:hover,
+.score-play[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: rgba(212, 180, 131, 0.12);
+}
+.score-lyrics {
+  position: relative;
+  overflow: auto;
+  max-height: min(68vh, 36rem);
+  padding-right: 0.4rem;
+}
+.score-lyrics p { margin: 0 0 1rem; }
+.score-line {
+  display: block;
+  margin: 0.28rem 0;
+  color: var(--muted);
+}
+.score-line.is-current { color: var(--gold); }
 
 .spine {
   list-style: none;
@@ -379,13 +474,16 @@ h1, h2, .statement, .lede {
 .schools span { color: var(--gold); font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em; }
 .schools p { margin: 0.3rem 0 0; color: var(--muted); }
 .about h2 { font-family: var(--serif); font-weight: 460; font-size: 1.8rem; }
-.about > p { max-width: 48rem; }
+.about > p { max-width: none; }
 
 @media (max-width: 800px) {
   .mast { flex-wrap: wrap; }
   .codex { width: auto; padding: 1.4rem 1.1rem 15rem; }
   .plates { grid-template-columns: 1fr; }
   .plate-art { max-height: 11rem; }
+  .gallery { grid-template-columns: 1fr; }
+  .score-stage { grid-template-columns: 1fr; }
+  .score-singer .hime-portrait { height: 22rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
