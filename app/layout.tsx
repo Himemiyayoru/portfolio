@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Atmosphere } from "@/components/Atmosphere";
 import { Header } from "@/components/Header";
 import { HimeGuide } from "@/components/HimeGuide";
 import { site } from "@/content/site";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${fraunces.variable} ${geist.variable} ${geistMono.variable}`}>
       <body>
+        <Atmosphere />
         <Header />
         <div className="codex">{children}</div>
         <HimeGuide />

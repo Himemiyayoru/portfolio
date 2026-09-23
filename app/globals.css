@@ -63,6 +63,27 @@ h1, h2, .statement, .lede {
   bottom: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(212, 180, 131, 0.15) 12%, var(--gold) 50%, rgba(212, 180, 131, 0.15) 88%, transparent);
+  background-size: 200% 100%;
+  animation: gold-line 9s ease-in-out infinite;
+}
+
+.lamp {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(520px circle at var(--lx, 78%) var(--ly, 0%), rgba(212, 180, 131, 0.08), transparent 58%);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
 }
 
 .mast-name {
@@ -139,9 +160,11 @@ h1, h2, .statement, .lede {
 }
 
 .plate {
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr auto;
   min-height: 100%;
+  overflow: hidden;
   text-decoration: none;
   border: 1px solid rgba(212, 180, 131, 0.28);
   background:
@@ -152,6 +175,21 @@ h1, h2, .statement, .lede {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
   transition: border-color 180ms ease, transform 180ms ease;
 }
+
+.plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(340px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(212, 180, 131, 0.2), transparent 46%);
+  transition: opacity 220ms ease;
+}
+
+.plate.is-lit::before { opacity: 1; }
+
+.plate > * { position: relative; z-index: 1; }
 
 .plate:hover,
 .plate:focus-visible {
@@ -167,11 +205,28 @@ h1, h2, .statement, .lede {
   aspect-ratio: 16 / 9;
   max-height: 12.5rem;
   overflow: hidden;
+  border-radius: 0.9rem;
   background: #0d0a10;
   margin-bottom: 0.8rem;
 }
 
 .plate-art img { object-fit: cover; }
+
+.plate-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 36%, rgba(243, 234, 223, 0.22) 49%, transparent 62%);
+  transform: translateX(-130%);
+}
+
+.plate:hover .plate-art::after,
+.plate:focus-visible .plate-art::after {
+  transform: translateX(130%);
+  transition: transform 720ms ease;
+}
 
 .plate-copy h2 {
   margin: 0 0 0.35rem;
@@ -329,6 +384,8 @@ h1, h2, .statement, .lede {
   margin: 0;
   padding: 0;
   border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  overflow: hidden;
   background: transparent;
   line-height: 0;
   cursor: zoom-in;
@@ -344,6 +401,7 @@ h1, h2, .statement, .lede {
 
 .gallery-video {
   border: 1px solid var(--line);
+  border-radius: 0.9rem;
   background: #0d0a10;
 }
 
@@ -376,6 +434,7 @@ h1, h2, .statement, .lede {
   width: auto;
   height: auto;
   border: 1px solid var(--line);
+  border-radius: 0.9rem;
 }
 
 .lightbox-close {
@@ -428,6 +487,7 @@ h1, h2, .statement, .lede {
   max-width: 100%;
   background: #0d0a10;
   border: 1px solid var(--line);
+  border-radius: 0.9rem;
 }
 .reel-bar {
   display: flex;
@@ -453,6 +513,7 @@ h1, h2, .statement, .lede {
   height: min(58vh, 32rem);
   max-width: 100%;
   border: 1px solid var(--line);
+  border-radius: 0.9rem;
 }
 .split h2 { margin-top: 0; }
 .split p { margin: 0.55rem 0 0; }
@@ -462,6 +523,7 @@ h1, h2, .statement, .lede {
   height: min(52vh, 28rem);
   max-width: 100%;
   border: 1px solid var(--line);
+  border-radius: 0.9rem;
 }
 .prose p { color: var(--ink); }
 .prose a { color: var(--gold); }
@@ -705,7 +767,15 @@ h1, h2, .statement, .lede {
   .player-bar { width: min(100%, 18rem); }
 }
 
+@keyframes gold-line {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hime, .plate { transition: none !important; }
   .plate:hover, .plate:focus-visible { transform: none; }
+  .mast::after { animation: none; }
+  .lamp { display: none; }
+  .plate-art::after { display: none; }
 }
