@@ -163,9 +163,9 @@ export function Soundtrack() {
         swell = Math.max(-1, Math.min(1, (energyEma - energyFloor) * 6));
       }
       const idle = quiet ? 0 : 1;
-      const targetX = idle * (Math.sin(elapsed * 0.5) * 4 + lift * 8 + swell * 4);
-      const targetY = idle * (Math.sin(elapsed * 0.37) * 3 + lift * 14 + swell * 5);
-      const targetZ = idle * (Math.sin(elapsed * 0.29) * 3 - lift * 10 + swell * 3);
+      const targetX = idle * (Math.sin(elapsed * 0.5) * 6 + lift * 12 + swell * 6);
+      const targetY = idle * (Math.sin(elapsed * 0.37) * 4.5 + lift * 21 + swell * 7.5);
+      const targetZ = idle * (Math.sin(elapsed * 0.29) * 4.5 - lift * 15 + swell * 4.5);
 
       poseX += (targetX - poseX) * 0.07;
       poseY += (targetY - poseY) * 0.07;
