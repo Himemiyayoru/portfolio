@@ -43,11 +43,42 @@ function band(data: Uint8Array, sampleRate: number, low: number, high: number) {
   return count ? sum / count : 0;
 }
 
+/** Open the mouth only when the centered, voice-band signal has a singing pitch. */
+function voicedMouth(samples: Uint8Array, sampleRate: number, frame: Float32Array) {
+  const count = samples.length;
+  let energy = 0;
+  for (let i = 0; i < count; i += 1) {
+    const sample = (samples[i] - 128) / 128;
+    frame[i] = sample;
+    energy += sample * sample;
+  }
+  energy /= count;
+  const level = Math.sqrt(energy);
+  if (level < 0.02) return 0;
+  const minLag = Math.max(2, Math.floor(sampleRate / 750));
+  const maxLag = Math.min(count - 2, Math.floor(sampleRate / 160));
+  let best = 0;
+  let bestLag = minLag;
+  for (let lag = minLag; lag <= maxLag; lag += 2) {
+    let correlation = 0;
+    for (let i = 0; i < count - lag; i += 4) correlation += frame[i] * frame[i + lag];
+    if (correlation > best) {
+      best = correlation;
+      bestLag = lag;
+    }
+  }
+  if (bestLag <= minLag + 2 || bestLag >= maxLag - 2) return 0;
+  const confidence = best / (energy * ((count - bestLag) / 4) + 1e-6);
+  if (confidence < 0.45) return 0;
+  return Math.min(1, (level - 0.02) * 10);
+}
+
 export function Soundtrack() {
   const score = getWork("crimson-moon")?.score;
   const figureRef = useRef<HimeHandle>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const vocalRef = useRef<AnalyserNode | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
   const playingRef = useRef(false);
   const scrubbingRef = useRef(false);
@@ -62,6 +93,8 @@ export function Soundtrack() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const freq = new Uint8Array(128);
+    const vocalTime = new Uint8Array(2048);
+    const vocalFrame = new Float32Array(2048);
     let frame = 0;
     let mouth = 0;
     let body = 0;
@@ -73,15 +106,21 @@ export function Soundtrack() {
       const singing = playingRef.current && audio !== null && !audio.paused;
       let vocal = 0;
       let pulse = 0;
-      if (singing && analyserRef.current && contextRef.current) {
-        analyserRef.current.getByteFrequencyData(freq);
+      if (singing && contextRef.current) {
         const rate = contextRef.current.sampleRate;
-        vocal = band(freq, rate, 180, 3800);
-        pulse = band(freq, rate, 40, 240);
+        if (analyserRef.current) {
+          analyserRef.current.getByteFrequencyData(freq);
+          pulse = band(freq, rate, 40, 240);
+        }
+        if (vocalRef.current) {
+          vocalRef.current.getByteTimeDomainData(vocalTime);
+          vocal = voicedMouth(vocalTime, rate, vocalFrame);
+        }
       }
 
       const quiet = reduce.matches;
-      mouth += ((singing && !quiet ? Math.min(1, vocal * 2.4) : 0) - mouth) * 0.18;
+      const mouthTarget = singing && !quiet ? vocal : 0;
+      mouth += (mouthTarget - mouth) * (mouthTarget > mouth ? 0.55 : 0.28);
       body += ((singing && !quiet ? pulse : 0) - body) * 0.04;
       figureRef.current?.setFrame?.("bust");
       figureRef.current?.setPose({
@@ -126,8 +165,33 @@ export function Soundtrack() {
       analyser.fftSize = 256;
       source.connect(analyser);
       analyser.connect(context.destination);
+
+      const splitter = context.createChannelSplitter(2);
+      const left = context.createGain();
+      const right = context.createGain();
+      const mid = context.createGain();
+      left.gain.value = 0.5;
+      right.gain.value = 0.5;
+      source.connect(splitter);
+      splitter.connect(left, 0);
+      splitter.connect(right, 1);
+      left.connect(mid);
+      right.connect(mid);
+      const highpass = context.createBiquadFilter();
+      highpass.type = "highpass";
+      highpass.frequency.value = 200;
+      const lowpass = context.createBiquadFilter();
+      lowpass.type = "lowpass";
+      lowpass.frequency.value = 3200;
+      const vocal = context.createAnalyser();
+      vocal.fftSize = 2048;
+      mid.connect(highpass);
+      highpass.connect(lowpass);
+      lowpass.connect(vocal);
+
       contextRef.current = context;
       analyserRef.current = analyser;
+      vocalRef.current = vocal;
     }
     await contextRef.current.resume();
     if (audio.paused) {
