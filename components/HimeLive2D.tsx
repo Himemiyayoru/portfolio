@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { Emotion } from "@/content/lines";
-import type { HimeFrame, HimeHandle, HimePose } from "@/components/HimeFigure";
+import type { HimeHandle, HimePose } from "@/components/HimeFigure";
 import { HimeFigure } from "@/components/HimeFigure";
 import { site } from "@/content/site";
 
@@ -48,6 +48,8 @@ type LiveModel = {
   position: { set: (x: number, y: number) => void };
   interactive: boolean;
   autoInteract?: boolean;
+  visible: boolean;
+  focus: (x: number, y: number) => void;
   destroy: () => void;
   internalModel: {
     width: number;
@@ -57,7 +59,8 @@ type LiveModel = {
     update: (dt: number, now: number) => void;
     updateFocus: () => void;
     updateNaturalMovements: (dt: number, now: number) => void;
-    renderer: { _clippingManager: ClippingManager };
+    draw: (gl: WebGLRenderingContext) => void;
+    renderer: CubismRenderer;
   };
 };
 
@@ -73,6 +76,13 @@ type ClippingManager = {
   gl: WebGLRenderingContext | null;
   setClippingMaskBufferSize: (size: number) => void;
   setupLayoutBounds: (usingClipCount: number) => void;
+  setupClippingContext: (model: unknown, renderer: unknown) => void;
+};
+
+type CubismRenderer = {
+  gl: WebGLRenderingContext | null;
+  preDraw: () => void;
+  _clippingManager: ClippingManager;
 };
 
 /** Cubism packs at most 64 masks. 碳酸 uses 88, so the rest never get a channel and the draw throws. */
@@ -187,14 +197,218 @@ function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
   core.setParameterValueById("ParamBreath", (Math.sin(performance.now() / 700) + 1) / 2);
 }
 
+type Seat = {
+  host: HTMLElement;
+  url: string;
+  followCursor: boolean;
+  alive: boolean;
+  model: LiveModel | null;
+  bust: { anchorY: number; fraction: number } | null;
+  getPose: () => HimePose;
+  getEmotion: () => Emotion;
+  onReady: () => void;
+};
+
+type StageApp = {
+  stage: { addChild: (child: LiveModel) => void };
+  screen: { width: number; height: number };
+  renderer: { resize: (width: number, height: number) => void };
+  ticker: { add: (fn: () => void) => void; remove: (fn: () => void) => void };
+  destroy: (removeView?: boolean) => void;
+};
+
+const seats: Seat[] = [];
+let stageApp: StageApp | null = null;
+let stageCanvas: HTMLCanvasElement | null = null;
+let stageStart: Promise<void> | null = null;
+let stageLoop: (() => void) | null = null;
+let stageToken = 0;
+
+function scissorToHost(seat: Seat, gl: WebGLRenderingContext) {
+  const rect = seat.host.getBoundingClientRect();
+  const canvas = gl.canvas as HTMLCanvasElement;
+  const scaleX = canvas.clientWidth ? gl.drawingBufferWidth / canvas.clientWidth : 1;
+  const scaleY = canvas.clientHeight ? gl.drawingBufferHeight / canvas.clientHeight : 1;
+  let x = Math.floor(rect.left * scaleX);
+  let y = Math.floor((canvas.clientHeight - rect.bottom) * scaleY);
+  let width = Math.ceil(rect.width * scaleX);
+  let height = Math.ceil(rect.height * scaleY);
+  if (x < 0) {
+    width += x;
+    x = 0;
+  }
+  if (y < 0) {
+    height += y;
+    y = 0;
+  }
+  if (x + width > gl.drawingBufferWidth) width = gl.drawingBufferWidth - x;
+  if (y + height > gl.drawingBufferHeight) height = gl.drawingBufferHeight - y;
+  gl.enable(gl.SCISSOR_TEST);
+  gl.scissor(x, y, Math.max(0, width), Math.max(0, height));
+}
+
+function clipModelToSeat(seat: Seat, cubism: CubismRenderer) {
+  let masking = false;
+  const preDraw = cubism.preDraw.bind(cubism);
+  cubism.preDraw = () => {
+    preDraw();
+    if (!masking && cubism.gl) scissorToHost(seat, cubism.gl);
+  };
+  const setup = cubism._clippingManager.setupClippingContext.bind(cubism._clippingManager);
+  cubism._clippingManager.setupClippingContext = (model, renderer) => {
+    masking = true;
+    try {
+      setup(model, renderer);
+    } finally {
+      masking = false;
+      if (cubism.gl) scissorToHost(seat, cubism.gl);
+    }
+  };
+}
+
+function placeSeat(seat: Seat) {
+  const model = seat.model;
+  const bust = seat.bust;
+  if (!model || !bust) return;
+  const rect = seat.host.getBoundingClientRect();
+  const visible = rect.width > 8 && rect.height > 8 && rect.bottom > 0 && rect.top < window.innerHeight;
+  model.visible = visible;
+  if (!visible) return;
+  model.scale.set(rect.height / (bust.fraction * model.internalModel.height));
+  model.anchor.set(0.5, bust.anchorY);
+  model.position.set(rect.left + rect.width / 2, rect.top + rect.height * 0.5);
+}
+
+function onStagePointer(event: PointerEvent) {
+  for (const seat of seats) {
+    if (!seat.alive || !seat.followCursor || !seat.model?.visible) continue;
+    seat.model.focus(event.clientX, event.clientY);
+  }
+}
+
+function syncStageSize() {
+  if (!stageApp) return;
+  const width = document.documentElement.clientWidth;
+  const height = document.documentElement.clientHeight;
+  if (stageApp.screen.width !== width || stageApp.screen.height !== height) {
+    stageApp.renderer.resize(width, height);
+  }
+}
+
+async function ensureStage() {
+  if (stageApp) return;
+  if (stageStart) return stageStart;
+  const token = ++stageToken;
+  stageStart = (async () => {
+    await loadCubismCore();
+    if (token !== stageToken) return;
+    const PIXI = await import("pixi.js");
+    if (token !== stageToken) return;
+    const { Live2DModel } = await import("pixi-live2d-display/cubism4");
+    if (token !== stageToken) return;
+    window.PIXI = PIXI;
+    Live2DModel.registerTicker(PIXI.Ticker);
+    const canvas = document.createElement("canvas");
+    canvas.className = "hime-stage";
+    document.body.appendChild(canvas);
+    const view = new PIXI.Application({
+      view: canvas,
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+      backgroundAlpha: 0,
+      antialias: true,
+      autoDensity: true,
+      resolution: Math.min(2, window.devicePixelRatio || 1),
+    });
+    if (token !== stageToken) {
+      view.destroy(true);
+      canvas.remove();
+      return;
+    }
+    stageCanvas = canvas;
+    stageApp = view as unknown as StageApp;
+    stageLoop = () => {
+      syncStageSize();
+      for (const seat of seats) placeSeat(seat);
+    };
+    stageApp.ticker.add(stageLoop);
+    window.addEventListener("pointermove", onStagePointer);
+  })();
+  return stageStart;
+}
+
+function releaseStage() {
+  if (seats.some((seat) => seat.alive)) return;
+  stageToken += 1;
+  window.removeEventListener("pointermove", onStagePointer);
+  if (stageApp && stageLoop) stageApp.ticker.remove(stageLoop);
+  stageApp?.destroy(true);
+  stageCanvas?.remove();
+  stageApp = null;
+  stageCanvas = null;
+  stageLoop = null;
+  stageStart = null;
+}
+
+function registerSeat(seat: Seat) {
+  seats.push(seat);
+  void (async () => {
+    try {
+      await ensureStage();
+      if (!seat.alive || !stageApp) return;
+      const { Live2DModel } = await import("pixi-live2d-display/cubism4");
+      const loaded = (await Live2DModel.from(seat.url, { autoInteract: false })) as unknown as LiveModel;
+      if (!seat.alive) {
+        loaded.destroy();
+        return;
+      }
+      loaded.interactive = false;
+      loaded.autoInteract = false;
+      supportLargeMaskCounts(loaded.internalModel.renderer._clippingManager);
+      clipModelToSeat(seat, loaded.internalModel.renderer);
+      if (!seat.followCursor) {
+        loaded.internalModel.updateFocus = () => {};
+        loaded.internalModel.updateNaturalMovements = () => {};
+      }
+      const draw = loaded.internalModel.draw.bind(loaded.internalModel);
+      loaded.internalModel.draw = (gl) => {
+        draw(gl);
+        gl.disable(gl.SCISSOR_TEST);
+      };
+      const update = loaded.internalModel.update.bind(loaded.internalModel);
+      loaded.internalModel.update = (dt, now) => {
+        applyPose(loaded.internalModel.coreModel, seat.getPose(), seat.getEmotion());
+        update(dt, now);
+      };
+      seat.bust = bustFrame(
+        loaded.internalModel.coreModel,
+        loaded.internalModel.pixelsPerUnit,
+        loaded.internalModel.height,
+      );
+      seat.model = loaded;
+      stageApp.stage.addChild(loaded);
+      placeSeat(seat);
+      seat.onReady();
+    } catch (error) {
+      console.error(error);
+    }
+  })();
+  return () => {
+    seat.alive = false;
+    seat.model?.destroy();
+    seat.model = null;
+    const index = seats.indexOf(seat);
+    if (index >= 0) seats.splice(index, 1);
+    releaseStage();
+  };
+}
+
 const HimeLive2D = forwardRef<
   HimeHandle,
   { url: string; emotion: Emotion; onReady: () => void; followCursor?: boolean }
 >(function HimeLive2D({ url, emotion, onReady, followCursor = true }, ref) {
     const hostRef = useRef<HTMLDivElement>(null);
     const poseRef = useRef<HimePose>({ x: 0, y: 0, z: 0, blink: false, mouth: 0 });
-    const frameRef = useRef<HimeFrame>("bust");
-    const fitRef = useRef<() => void>(() => {});
     const emotionRef = useRef(emotion);
     const onReadyRef = useRef(onReady);
     emotionRef.current = emotion;
@@ -204,109 +418,22 @@ const HimeLive2D = forwardRef<
       setPose(pose) {
         poseRef.current = pose;
       },
-      setFrame(frame) {
-        if (frameRef.current === frame) return;
-        frameRef.current = frame;
-        fitRef.current();
-      },
     }));
 
     useEffect(() => {
       const host = hostRef.current;
       if (!host) return;
-      let cancelled = false;
-      let observer: ResizeObserver | null = null;
-      let app: { destroy: (removeView?: boolean) => void; renderer: { resize: (width: number, height: number) => void }; stage: { addChild: (child: LiveModel) => void }; screen: { width: number; height: number }; view: HTMLCanvasElement } | null = null;
-      let model: LiveModel | null = null;
-
-      void (async () => {
-        try {
-          await loadCubismCore();
-          if (cancelled) return;
-          const PIXI = await import("pixi.js");
-          const { Live2DModel } = await import("pixi-live2d-display/cubism4");
-          if (cancelled) return;
-          window.PIXI = PIXI;
-          Live2DModel.registerTicker(PIXI.Ticker);
-          const view = new PIXI.Application({
-            width: host.clientWidth || 184,
-            height: host.clientHeight || 246,
-            backgroundAlpha: 0,
-            antialias: true,
-            autoDensity: true,
-            resolution: followCursor ? Math.min(2, window.devicePixelRatio) : 1,
-          });
-          if (cancelled) {
-            view.destroy(true);
-            return;
-          }
-          app = view as unknown as NonNullable<typeof app>;
-          host.appendChild(view.view as HTMLCanvasElement);
-          const loaded = (await Live2DModel.from(url, { autoInteract: followCursor })) as unknown as LiveModel;
-          if (cancelled) {
-            loaded.destroy();
-            return;
-          }
-          model = loaded;
-          model.interactive = false;
-          if (!followCursor) model.autoInteract = false;
-          supportLargeMaskCounts(model.internalModel.renderer._clippingManager);
-          const bust = bustFrame(
-            model.internalModel.coreModel,
-            model.internalModel.pixelsPerUnit,
-            model.internalModel.height,
-          );
-          const fitModel = () => {
-            const width = host.clientWidth || view.screen.width;
-            const height = host.clientHeight || view.screen.height;
-            if (!width || !height) return;
-            view.renderer.resize(width, height);
-            const stand = frameRef.current === "stand";
-            const baseW = model!.internalModel.width;
-            const baseH = model!.internalModel.height;
-            if (stand) {
-              const fit = Math.min(width / baseW, height / baseH);
-              model!.scale.set(fit * 1.02);
-              model!.anchor.set(0.5, 0.5);
-              model!.position.set(width / 2, height * 0.52);
-              return;
-            }
-            model!.scale.set(height / (bust.fraction * baseH));
-            model!.anchor.set(0.5, bust.anchorY);
-            model!.position.set(width / 2, height * 0.5);
-          };
-          fitRef.current = fitModel;
-          fitModel();
-          observer = new ResizeObserver(() => fitModel());
-          observer.observe(host);
-          const internal = model.internalModel;
-          if (!followCursor) {
-            // The player already writes the pose. Cursor focus and the built-in
-            // breath add a second sway on top and the body starts to jerk.
-            internal.updateFocus = () => {};
-            internal.updateNaturalMovements = () => {};
-          }
-          const update = internal.update.bind(internal);
-          internal.update = (dt, now) => {
-            // Angles have to be in place before physics. On this model, left-right
-            // is a physics output; updating the mesh again afterwards clears it.
-            applyPose(internal.coreModel, poseRef.current, emotionRef.current);
-            update(dt, now);
-          };
-          view.stage.addChild(model as never);
-          onReadyRef.current();
-        } catch (error) {
-          console.error(error);
-        }
-      })();
-
-      return () => {
-        cancelled = true;
-        fitRef.current = () => {};
-        observer?.disconnect();
-        model?.destroy();
-        app?.destroy(true);
-      };
+      return registerSeat({
+        host,
+        url,
+        followCursor,
+        alive: true,
+        model: null,
+        bust: null,
+        getPose: () => poseRef.current,
+        getEmotion: () => emotionRef.current,
+        onReady: () => onReadyRef.current(),
+      });
     }, [url, followCursor]);
 
     return <div ref={hostRef} className="hime-live" />;

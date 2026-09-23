@@ -98,8 +98,18 @@ export function Soundtrack() {
   }, []);
 
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const syncDuration = () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) setDuration(audio.duration);
+    };
+    syncDuration();
+    audio.addEventListener("loadedmetadata", syncDuration);
+    audio.addEventListener("durationchange", syncDuration);
     return () => {
-      audioRef.current?.pause();
+      audio.removeEventListener("loadedmetadata", syncDuration);
+      audio.removeEventListener("durationchange", syncDuration);
+      audio.pause();
       void contextRef.current?.close();
     };
   }, []);
@@ -149,6 +159,51 @@ export function Soundtrack() {
           <div className="score-stage-slot">
             <HimePortrait ref={figureRef} emotion={playing ? "happy" : "neutral"} followCursor={false} />
           </div>
+          <div className="player-bar">
+            <button
+              type="button"
+              className="player-toggle"
+              aria-label={playing ? "Pause" : "Play"}
+              aria-pressed={playing}
+              onClick={() => void toggle()}
+            >
+              {playing ? <PauseIcon /> : <PlayIcon />}
+            </button>
+            <div className="player-track">
+              <div className="player-name">
+                <span>Score</span> {score.title}
+              </div>
+              <input
+                className="player-range"
+                type="range"
+                min={0}
+                max={duration || 0}
+                step={0.1}
+                value={Math.min(time, duration || 0)}
+                aria-label="Song position"
+                style={{ ["--progress" as string]: progress }}
+                onPointerDown={(event) => {
+                  scrubbingRef.current = true;
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                }}
+                onPointerUp={(event) => {
+                  scrubbingRef.current = false;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
+                }}
+                onLostPointerCapture={() => {
+                  scrubbingRef.current = false;
+                }}
+                onInput={(event) => seek(Number(event.currentTarget.value))}
+                onChange={(event) => seek(Number(event.currentTarget.value))}
+              />
+              <div className="player-times">
+                <span>{formatTime(time)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="score-lyrics" aria-label="Japanese lyrics">
           {judgmentDuskLyrics.map((stanza, stanzaIndex) => (
@@ -160,43 +215,6 @@ export function Soundtrack() {
               ))}
             </p>
           ))}
-        </div>
-      </div>
-      <div className="player-bar">
-        <button
-          type="button"
-          className="player-toggle"
-          aria-label={playing ? "Pause" : "Play"}
-          aria-pressed={playing}
-          onClick={() => void toggle()}
-        >
-          {playing ? <PauseIcon /> : <PlayIcon />}
-        </button>
-        <div className="player-track">
-          <div className="player-name">
-            <span>Score</span> {score.title}
-          </div>
-          <input
-            className="player-range"
-            type="range"
-            min={0}
-            max={duration || 0}
-            step={0.1}
-            value={Math.min(time, duration || 0)}
-            aria-label="Song position"
-            style={{ ["--progress" as string]: progress }}
-            onPointerDown={() => {
-              scrubbingRef.current = true;
-            }}
-            onPointerUp={() => {
-              scrubbingRef.current = false;
-            }}
-            onChange={(event) => seek(Number(event.target.value))}
-          />
-          <div className="player-times">
-            <span>{formatTime(time)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
         </div>
       </div>
       <audio

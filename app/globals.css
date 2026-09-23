@@ -215,6 +215,14 @@ h1, h2, .statement, .lede {
   pointer-events: none;
 }
 
+.hime-stage {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 25;
+  pointer-events: none;
+}
+
 .hime-card { fill: #1a121c; stroke: var(--gold); stroke-width: 1.2; }
 .hime-moon { fill: none; stroke: var(--gold); stroke-width: 1.2; opacity: 0.8; }
 .hime-hair { fill: #4a1830; }
@@ -363,19 +371,21 @@ h1, h2, .statement, .lede {
 .score audio { display: none; }
 .score-stage {
   display: grid;
-  grid-template-columns: minmax(16rem, 0.85fr) 1.15fr;
-  gap: 1rem;
-  align-items: stretch;
+  grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr);
+  gap: 1.1rem 1.4rem;
+  align-items: start;
 }
 .score-singer {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  width: 100%;
   min-height: 0;
 }
 .score-stage-slot {
   position: relative;
   width: 100%;
-  height: min(68vh, 36rem);
+  height: min(46vh, 24rem);
 }
 .score-stage-slot .hime-portrait {
   width: 100%;
@@ -384,11 +394,13 @@ h1, h2, .statement, .lede {
 }
 .player-bar {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.9rem;
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--line);
+  width: min(100%, 18rem);
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+  padding-top: 0;
+  border-top: 0;
 }
 .player-toggle {
   flex: none;
@@ -404,8 +416,13 @@ h1, h2, .statement, .lede {
 .player-toggle svg { width: 1.15rem; height: 1.15rem; display: block; margin: 0 auto; fill: currentColor; }
 .player-toggle:hover,
 .player-toggle[aria-pressed="true"] { background: rgba(212, 180, 131, 0.16); }
-.player-track { flex: 1; min-width: 0; }
-.player-name { font-family: var(--serif); font-size: 1.15rem; margin-bottom: 0.35rem; }
+.player-track { width: 100%; min-width: 0; }
+.player-name {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  margin-bottom: 0.15rem;
+  text-align: center;
+}
 .player-name span {
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -417,12 +434,24 @@ h1, h2, .statement, .lede {
 .player-range {
   -webkit-appearance: none;
   appearance: none;
+  display: block;
   width: 100%;
-  height: 0.35rem;
+  height: 1.35rem;
   margin: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+.player-range:active { cursor: grabbing; }
+.player-range::-webkit-slider-runnable-track {
+  height: 0.35rem;
   border-radius: 999px;
   background: linear-gradient(to right, var(--gold) var(--progress), rgba(212, 180, 131, 0.28) var(--progress));
-  cursor: pointer;
+}
+.player-range::-moz-range-track {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--gold) var(--progress), rgba(212, 180, 131, 0.28) var(--progress));
 }
 .player-range::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -451,17 +480,18 @@ h1, h2, .statement, .lede {
 }
 .score-lyrics {
   position: relative;
-  overflow: auto;
-  max-height: min(68vh, 36rem);
-  padding-right: 0.4rem;
+  overflow: visible;
+  max-height: none;
+  padding-right: 0;
 }
-.score-lyrics p { margin: 0 0 1rem; }
+.score-lyrics p { margin: 0 0 0.22rem; }
 .score-lyrics .score-line {
   display: block;
-  margin: 0.35rem 0;
+  margin: 0;
   color: var(--gold);
   font-family: var(--serif);
-  font-size: 1.2rem;
+  font-size: 0.84rem;
+  line-height: 1.32;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -540,7 +570,7 @@ h1, h2, .statement, .lede {
   .plate-art { max-height: 11rem; }
   .gallery { grid-template-columns: 1fr; }
   .score-stage { grid-template-columns: 1fr; }
-  .score-stage-slot { height: 22rem; }
+  .score-stage-slot { height: 18rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
