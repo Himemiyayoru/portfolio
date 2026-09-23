@@ -1,19 +1,49 @@
 import { HimeDiagram } from "@/components/HimeDiagram";
 
-## What I made
+## Who she is
 
-Hime is a desktop companion who lives on the same computer as the person she talks to. She hears a microphone, answers in a voice rendered on that machine, and keeps a memory with real dates. Small talk is not written down. A faster model answers at once. A slower one continues when the question needs it.
+Hime is a companion who lives on the same computer as the person she talks to. The project began from Neuro-sama: a character who speaks quickly, keeps a longer mind behind the voice, and drives her own face. Hime is not a public stream. She is written as my younger sister. A little tsundere, sharp when she wants to be, and easy to like. She knows she is an AI. In ordinary talk she does not lecture about it.
 
-She has a face. Emotion is a tag she has to say, mapped onto the avatar, not a guess from keywords. While she is quiet her head idles and she blinks. Her mouth follows the loudness of her own voice, so silence keeps it closed.
-
-The part in progress is vision: a look at the screen that changes how she behaves, then a short note of what she saw. Those notes are not on this website.
+The face on screen is a Live2D model a friend licensed to me, and only so the system can be shown working. The contributor is 椰蓉球.
 
 <HimeDiagram />
 
-## The constraint
+## How she was made
 
-On the desk she is private. Here she is a guide. She speaks prepared lines about the work. She does not watch your screen, and she does not remember you when you leave.
+The first version was written with Gemini. That pass covered the language, the memory, and the control of the virtual face. The work then moved to Cursor. Earlier problems in those three parts were tightened there, and the vision module was written in that second pass.
 
-## Next
+## Why the system holds together
 
-The vision loop is what I am tuning.
+A companion falls apart when the microphone, the screen, and the face each talk on their own schedule. Hime has one queue. A spoken line, a typed line, and a note from the screen all enter the same place. The person's voice is the highest priority. When they start talking, a waiting comment from the screen is cleared, and her own playback can be interrupted.
+
+The reply is one streamed model, not a short lead-in handed to a second model. Sentences leave for speech as soon as the punctuation arrives, so the voice starts while the rest of the line is still being written. Emotion is a tag she has to emit, mapped onto the avatar. The mouth follows the loudness of her own voice, and the vowel shape follows the text that was just spoken. Silence keeps the mouth closed.
+
+## Voice
+
+The microphone is transcribed with Whisper. Chinese, English, and Japanese are detected from the utterance. Noise and a lone hallucinated phrase are dropped. A typed line joins the same queue, and its language is guessed from the letters.
+
+Speech is a local GPT-SoVITS voice. A mixed sentence is split by script, each piece is synthesized in its own language, and the pieces are crossfaded so a language change does not click. The name Hime is always voiced from the Japanese reference. Words inside parentheses are stage directions. They change what she does. They are not spoken.
+
+## Memory
+
+Chat memory sits in ChromaDB, embedded with a text model, and each entry keeps a real date and time. Long notes are cut on sentence boundaries before they are stored. Small talk and a restatement of who she already is stay out of the bank. A later reply can pull back the entries that match.
+
+What she sees is a second collection, embedded with CLIP, so a short visual note can be found again without being mixed into the chat bank.
+
+## The face
+
+VTube Studio is driven through its plugin API. The five emotion tags map to expression hotkeys. A separate list of words in her own dialogue can fire a gesture, and that gesture starts when the audio of that line starts, not when the text is generated. Toggle expressions share one ledger, so a face she turned on is the face that gets turned off when the turn ends.
+
+While she is quiet, the head idles: a slow random drift, a light breath, a blink, and an occasional small bounce. The size of that motion follows her mood and how loud she is. Lip sync uses the loudness of the generated audio for how far the mouth opens, and a vowel timeline, built from the same text, for the shape. A silence gate on the model opens only while she is actually voicing.
+
+## The screen
+
+A watcher reads the focused window about once a second. Overwatch, a code editor, and a browser are different modes. In an editor she can read the text in front of her. A game frame can be cut into regions for health, an ultimate, and a kill feed. Those regions are still being aimed. The browser mode is recognized and left open. Notes from the screen can enter the same queue as speech. The diary itself stays on the machine. It is not published here.
+
+## What comes next
+
+The next training is for games. The aim is a model that understands the rules, and then hands that can play the character, not only comment on the screen.
+
+## On this website
+
+The Hime in the corner is the public guide. She speaks prepared lines about the work. She does not watch this screen, and she does not keep a memory of the visit. The companion described above stays on the desk.
