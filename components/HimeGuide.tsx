@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, useState } from "react";
 import { isLineId, lines, type Emotion, type LineId } from "@/content/lines";
 import type { HimeHandle } from "@/components/HimeFigure";
 import { HimePortrait } from "@/components/HimeLive2D";
-import { getPerformance } from "@/components/performance";
 
 export function HimeGuide() {
   const figureRef = useRef<HimeHandle>(null);
@@ -16,7 +14,6 @@ export function HimeGuide() {
   const emotionRef = useRef(emotion);
   emotionRef.current = emotion;
   const [unlocked, setUnlocked] = useState(false);
-  const [stage, setStage] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const spoken = new Set<LineId>();
@@ -208,34 +205,13 @@ export function HimeGuide() {
         }
       }
       figureRef.current?.setFrame?.("bust");
-      const stageSlot = document.querySelector("[data-hime-stage]");
-      const performance = getPerformance();
-      if (stageSlot && performance.singing) {
-        const sway = 12 + performance.pulse * 22;
-        figureRef.current?.setPose({
-          x: reduce ? 0 : Math.sin(elapsed * (0.7 + performance.pulse * 1.6)) * sway,
-          y: reduce ? 0 : Math.sin(elapsed * 0.45) * (4 + performance.vocal * 8),
-          z: reduce ? 0 : Math.sin(elapsed * 0.33 + 1) * (3 + performance.pulse * 6),
-          blink,
-          mouth: performance.vocal,
-        });
-      } else if (stageSlot) {
-        figureRef.current?.setPose({
-          x: reduce ? 0 : Math.sin(elapsed * 0.62) * 14,
-          y: 0,
-          z: 0,
-          blink,
-          mouth: 0,
-        });
-      } else {
-        figureRef.current?.setPose({
-          x: angles[0],
-          y: angles[1],
-          z: angles[2],
-          blink,
-          mouth: voiced,
-        });
-      }
+      figureRef.current?.setPose({
+        x: angles[0],
+        y: angles[1],
+        z: angles[2],
+        blink,
+        mouth: voiced,
+      });
       frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
@@ -253,34 +229,18 @@ export function HimeGuide() {
     };
   }, []);
 
-  useLayoutEffect(() => {
-    const findStage = () => {
-      const next = document.querySelector<HTMLElement>("[data-hime-stage]");
-      setStage((current) => (current === next ? current : next));
-    };
-    findStage();
-    const observed = new MutationObserver(findStage);
-    observed.observe(document.body, { childList: true, subtree: true });
-    return () => observed.disconnect();
-  }, []);
-
-  const portrait = <HimePortrait ref={figureRef} emotion={emotion} />;
-
   return (
-    <>
-      <aside className="hime" data-phase={phase} data-unlocked={unlocked ? "true" : "false"}>
-        {phase === "dock" && caption ? (
-          <div className="hime-caption" aria-live="polite">
-            <p>{caption}</p>
-            {hint ? <p className="hime-hint">Tap once and I&apos;ll talk.</p> : null}
-          </div>
-        ) : null}
-        <button type="button" className="hime-button" data-hime-replay="" aria-label="Replay Hime's last line">
-          {stage ? null : portrait}
-          <span>Hime</span>
-        </button>
-      </aside>
-      {stage ? createPortal(portrait, stage) : null}
-    </>
+    <aside className="hime" data-phase={phase} data-unlocked={unlocked ? "true" : "false"}>
+      {phase === "dock" && caption ? (
+        <div className="hime-caption" aria-live="polite">
+          <p>{caption}</p>
+          {hint ? <p className="hime-hint">Tap once and I&apos;ll talk.</p> : null}
+        </div>
+      ) : null}
+      <button type="button" className="hime-button" data-hime-replay="" aria-label="Replay Hime's last line">
+        <HimePortrait ref={figureRef} emotion={emotion} />
+        <span>Hime</span>
+      </button>
+    </aside>
   );
 }

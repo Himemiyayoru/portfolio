@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { setPerformance } from "@/components/performance";
+import type { HimeHandle } from "@/components/HimeFigure";
+import { HimePortrait } from "@/components/HimeLive2D";
 import { judgmentDuskLyrics } from "@/content/judgment-dusk";
 import { getWork } from "@/content/works";
 
@@ -22,6 +23,7 @@ function band(data: Uint8Array, sampleRate: number, low: number, high: number) {
 
 export function Soundtrack() {
   const score = getWork("crimson-moon")?.score;
+  const figureRef = useRef<HimeHandle>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
@@ -39,9 +41,12 @@ export function Soundtrack() {
     const freq = new Uint8Array(128);
     let frame = 0;
     let mouth = 0;
+    let body = 0;
     let shownLine = -1;
+    const started = performance.now() / 1000;
 
-    const tick = () => {
+    const tick = (nowMs: number) => {
+      const elapsed = nowMs / 1000 - started;
       const audio = audioRef.current;
       const singing = playingRef.current && audio !== null && !audio.paused;
       let vocal = 0;
@@ -64,19 +69,21 @@ export function Soundtrack() {
         setLineIndex(-1);
       }
 
-      mouth += ((singing ? Math.min(1, vocal * 2.8) : 0) - mouth) * 0.35;
-      setPerformance({
-        singing,
-        vocal: mouth,
-        pulse: singing && !reduce.matches ? pulse : 0,
+      const quiet = reduce.matches;
+      mouth += ((singing && !quiet ? Math.min(1, vocal * 2.4) : 0) - mouth) * 0.18;
+      body += ((singing && !quiet ? pulse : 0) - body) * 0.04;
+      figureRef.current?.setFrame?.("bust");
+      figureRef.current?.setPose({
+        x: quiet ? 0 : Math.sin(elapsed * 0.7) * (singing ? 8 + body * 10 : 12),
+        y: quiet || !singing ? 0 : Math.sin(elapsed * 0.42) * body * 5,
+        z: quiet || !singing ? 0 : Math.sin(elapsed * 0.28) * body * 4,
+        blink: !quiet && elapsed % 4.8 < 0.12,
+        mouth,
       });
       frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      setPerformance({ singing: false, vocal: 0, pulse: 0 });
-    };
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -132,7 +139,9 @@ export function Soundtrack() {
       </figcaption>
       <div className="score-stage">
         <div className="score-singer">
-          <div className="score-stage-slot" data-hime-stage="" />
+          <div className="score-stage-slot">
+            <HimePortrait ref={figureRef} emotion={playing ? "happy" : "neutral"} followCursor={false} />
+          </div>
           <button type="button" className="score-play" aria-pressed={playing} onClick={() => void toggle()}>
             {playing ? "Pause" : "Play"}
           </button>

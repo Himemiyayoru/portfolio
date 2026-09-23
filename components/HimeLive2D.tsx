@@ -54,6 +54,8 @@ type LiveModel = {
     pixelsPerUnit: number;
     coreModel: CoreModel;
     update: (dt: number, now: number) => void;
+    updateFocus: () => void;
+    updateNaturalMovements: (dt: number, now: number) => void;
     renderer: { _clippingManager: ClippingManager };
   };
 };
@@ -184,8 +186,10 @@ function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
   core.setParameterValueById("ParamBreath", (Math.sin(performance.now() / 700) + 1) / 2);
 }
 
-const HimeLive2D = forwardRef<HimeHandle, { url: string; emotion: Emotion; onReady: () => void }>(
-  function HimeLive2D({ url, emotion, onReady }, ref) {
+const HimeLive2D = forwardRef<
+  HimeHandle,
+  { url: string; emotion: Emotion; onReady: () => void; followCursor?: boolean }
+>(function HimeLive2D({ url, emotion, onReady, followCursor = true }, ref) {
     const hostRef = useRef<HTMLDivElement>(null);
     const poseRef = useRef<HimePose>({ x: 0, y: 0, z: 0, blink: false, mouth: 0 });
     const frameRef = useRef<HimeFrame>("bust");
@@ -237,13 +241,16 @@ const HimeLive2D = forwardRef<HimeHandle, { url: string; emotion: Emotion; onRea
           }
           app = view as unknown as NonNullable<typeof app>;
           host.appendChild(view.view as HTMLCanvasElement);
-          const loaded = (await Live2DModel.from(url)) as unknown as LiveModel;
+          const loaded = (await Live2DModel.from(url, { autoInteract: followCursor })) as unknown as LiveModel & {
+            autoInteract?: boolean;
+          };
           if (cancelled) {
             loaded.destroy();
             return;
           }
           model = loaded;
           model.interactive = false;
+          if (!followCursor) model.autoInteract = false;
           supportLargeMaskCounts(model.internalModel.renderer._clippingManager);
           const bust = bustFrame(
             model.internalModel.coreModel,
@@ -274,6 +281,12 @@ const HimeLive2D = forwardRef<HimeHandle, { url: string; emotion: Emotion; onRea
           observer = new ResizeObserver(() => fitModel());
           observer.observe(host);
           const internal = model.internalModel;
+          if (!followCursor) {
+            // The player already writes the pose. Cursor focus and the built-in
+            // breath add a second sway on top and the body starts to jerk.
+            internal.updateFocus = () => {};
+            internal.updateNaturalMovements = () => {};
+          }
           const update = internal.update.bind(internal);
           internal.update = (dt, now) => {
             // Angles have to be in place before physics. On this model, left-right
@@ -295,16 +308,14 @@ const HimeLive2D = forwardRef<HimeHandle, { url: string; emotion: Emotion; onRea
         model?.destroy();
         app?.destroy(true);
       };
-    }, [url]);
+    }, [url, followCursor]);
 
     return <div ref={hostRef} className="hime-live" />;
   },
 );
 
-export const HimePortrait = forwardRef<HimeHandle, { emotion: Emotion }>(function HimePortrait(
-  { emotion },
-  ref,
-) {
+export const HimePortrait = forwardRef<HimeHandle, { emotion: Emotion; followCursor?: boolean }>(
+  function HimePortrait({ emotion, followCursor = true }, ref) {
   const svgRef = useRef<HimeHandle>(null);
   const liveRef = useRef<HimeHandle>(null);
   const [liveReady, setLiveReady] = useState(false);
@@ -330,6 +341,7 @@ export const HimePortrait = forwardRef<HimeHandle, { emotion: Emotion }>(functio
           ref={liveRef}
           emotion={emotion}
           url={site.live2dModel}
+          followCursor={followCursor}
           onReady={() => setLiveReady(true)}
         />
       ) : null}
