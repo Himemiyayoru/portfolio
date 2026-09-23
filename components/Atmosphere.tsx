@@ -10,7 +10,8 @@ type Mote = {
   life: number;
   decay: number;
   size: number;
-  hot: boolean;
+  angle: number;
+  spin: number;
 };
 
 export function Atmosphere() {
@@ -22,6 +23,7 @@ export function Atmosphere() {
     let lastX = 0;
     let lastY = 0;
     let hasLast = false;
+    let lastSpawn = 0;
     let frame = 0;
     let lastFrame = 0;
     const motes: Mote[] = [];
@@ -35,25 +37,23 @@ export function Atmosphere() {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
 
-    function spawn(x0: number, y0: number, x1: number, y1: number) {
-      const dx = x1 - x0;
-      const dy = y1 - y0;
-      const distance = Math.hypot(dx, dy);
-      if (distance < 4 || distance > 140) return;
-      const steps = Math.min(5, Math.max(1, Math.floor(distance / 12)));
-      for (let index = 0; index < steps; index += 1) {
-        if (motes.length > 72) motes.shift();
-        const along = (index + 1) / steps;
-        const scatter = (Math.random() - 0.5) * 8;
+    function spawn(x: number, y: number, now: number) {
+      if (now - lastSpawn < 110) return;
+      lastSpawn = now;
+      for (let index = 0; index < 4; index += 1) {
+        if (motes.length > 12) motes.shift();
+        const direction = Math.random() * Math.PI * 2;
+        const speed = 42 + Math.random() * 48;
         motes.push({
-          x: x0 + dx * along + scatter,
-          y: y0 + dy * along + scatter * 0.55,
-          vx: (-dx / distance) * (0.2 + Math.random() * 0.45),
-          vy: (-dy / distance) * (0.12 + Math.random() * 0.28) + 0.16,
+          x: x + (Math.random() - 0.5) * 8,
+          y: y + (Math.random() - 0.5) * 8,
+          vx: Math.cos(direction) * speed,
+          vy: Math.sin(direction) * speed,
           life: 1,
-          decay: 1.5 + Math.random() * 1.3,
-          size: Math.random() < 0.2 ? 2.2 + Math.random() * 1.3 : 0.9 + Math.random() * 1.2,
-          hot: Math.random() < 0.28,
+          decay: 2.4 + Math.random() * 0.7,
+          size: 5 + Math.random() * 1.6,
+          angle: Math.random() * Math.PI,
+          spin: (Math.random() - 0.5) * 0.8,
         });
       }
     }
@@ -71,22 +71,39 @@ export function Atmosphere() {
           motes.splice(index, 1);
           continue;
         }
-        mote.x += mote.vx;
-        mote.y += mote.vy;
-        const alpha = mote.life * mote.life;
-        const radius = mote.size * (0.45 + mote.life * 0.55);
+        mote.x += mote.vx * delta;
+        mote.y += mote.vy * delta;
+        mote.angle += mote.spin * delta;
+        const alpha = mote.life * 0.7;
+        const radius = mote.size * (0.7 + mote.life * 0.3);
+        context.save();
+        context.translate(mote.x, mote.y);
+        context.rotate(mote.angle);
+        context.strokeStyle = `rgba(212, 180, 131, ${alpha})`;
+        context.fillStyle = `rgba(243, 234, 223, ${alpha})`;
+        context.lineWidth = 1.15;
+        context.lineCap = "round";
         context.beginPath();
-        context.fillStyle = mote.hot
-          ? `rgba(243, 234, 223, ${alpha})`
-          : `rgba(212, 180, 131, ${alpha * 0.92})`;
-        context.arc(mote.x, mote.y, radius, 0, Math.PI * 2);
+        context.moveTo(-radius, 0);
+        context.lineTo(radius, 0);
+        context.moveTo(0, -radius);
+        context.lineTo(0, radius);
+        context.moveTo(-radius * 0.55, -radius * 0.55);
+        context.lineTo(radius * 0.55, radius * 0.55);
+        context.moveTo(radius * 0.55, -radius * 0.55);
+        context.lineTo(-radius * 0.55, radius * 0.55);
+        context.stroke();
+        context.beginPath();
+        context.arc(0, 0, 0.85, 0, Math.PI * 2);
         context.fill();
+        context.restore();
       }
     }
 
     function onMove(event: PointerEvent) {
       if (reduce) return;
-      if (hasLast) spawn(lastX, lastY, event.clientX, event.clientY);
+      const moved = Math.hypot(event.clientX - lastX, event.clientY - lastY);
+      if (hasLast && moved >= 10 && moved <= 160) spawn(event.clientX, event.clientY, performance.now());
       lastX = event.clientX;
       lastY = event.clientY;
       hasLast = true;
