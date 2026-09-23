@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import type { Emotion } from "@/content/lines";
 import type { HimeHandle, HimePose } from "@/components/HimeFigure";
 import { HimeFigure } from "@/components/HimeFigure";
@@ -448,33 +448,31 @@ export const HimePortrait = forwardRef<HimeHandle, { emotion: Emotion; followCur
   function HimePortrait({ emotion, followCursor = true }, ref) {
   const svgRef = useRef<HimeHandle>(null);
   const liveRef = useRef<HimeHandle>(null);
-  const [liveReady, setLiveReady] = useState(false);
+  const hasModel = Boolean(site.live2dModel);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      setPose(pose) {
-        (liveReady ? liveRef.current : svgRef.current)?.setPose(pose);
-      },
-      setFrame(frame) {
-        liveRef.current?.setFrame?.(frame);
-      },
-    }),
-    [liveReady],
-  );
+  useImperativeHandle(ref, () => ({
+    setPose(pose) {
+      liveRef.current?.setPose(pose);
+      svgRef.current?.setPose(pose);
+    },
+    setFrame(frame) {
+      liveRef.current?.setFrame?.(frame);
+    },
+  }));
 
   return (
-    <div className={liveReady ? "hime-portrait is-live" : "hime-portrait"}>
-      <HimeFigure ref={svgRef} emotion={emotion} />
-      {site.live2dModel ? (
+    <div className="hime-portrait">
+      {hasModel ? (
         <HimeLive2D
           ref={liveRef}
           emotion={emotion}
           url={site.live2dModel}
           followCursor={followCursor}
-          onReady={() => setLiveReady(true)}
+          onReady={() => {}}
         />
-      ) : null}
+      ) : (
+        <HimeFigure ref={svgRef} emotion={emotion} />
+      )}
     </div>
   );
 });
