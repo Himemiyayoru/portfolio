@@ -369,6 +369,7 @@ h1, h2, .statement, .lede {
 }
 .score.player {
   width: calc(100% + 16.65rem);
+  margin-top: 0.6rem;
   margin-left: -2rem;
   padding: 1.4rem 0 1.6rem;
   border-left: 0;
