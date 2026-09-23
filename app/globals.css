@@ -9,12 +9,14 @@
   --serif: var(--font-fraunces), "Times New Roman", serif;
   --sans: var(--font-geist), "Segoe UI", sans-serif;
   --mono: var(--font-mono), ui-monospace, monospace;
+  --cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M5.5 3.2 5.5 22.2 11.2 16.5 16.5 25.4 20.1 23.5 14.8 14.7 22.4 14.3Z' fill='%23d4b483' stroke='%23120e14' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 5 3, auto;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 
-html { background: var(--paper); }
+html { background: var(--paper); cursor: var(--cursor); }
+body, body * { cursor: var(--cursor); }
 
 body {
   margin: 0;
@@ -255,7 +257,7 @@ h1, h2, .statement, .lede {
   border: 0;
   background: transparent;
   color: var(--gold);
-  cursor: pointer;
+  cursor: var(--cursor);
 }
 
 .hime-button span {
@@ -376,7 +378,7 @@ h1, h2, .statement, .lede {
   overflow: hidden;
   background: transparent;
   line-height: 0;
-  cursor: zoom-in;
+  cursor: var(--cursor);
   color: inherit;
 }
 
@@ -437,7 +439,7 @@ h1, h2, .statement, .lede {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.45rem 0.7rem;
-  cursor: pointer;
+  cursor: var(--cursor);
 }
 
 .prose { max-width: none; font-size: 1.2rem; }
@@ -575,7 +577,7 @@ h1, h2, .statement, .lede {
   background: transparent;
   color: var(--gold);
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor);
 }
 .player-toggle svg { width: 1.15rem; height: 1.15rem; display: block; margin: 0 auto; fill: currentColor; }
 .player-toggle:hover,
@@ -603,10 +605,10 @@ h1, h2, .statement, .lede {
   height: 1.35rem;
   margin: 0;
   background: transparent;
-  cursor: grab;
+  cursor: var(--cursor);
   touch-action: none;
 }
-.player-range:active { cursor: grabbing; }
+.player-range:active { cursor: var(--cursor); }
 .player-range::-webkit-slider-runnable-track {
   height: 0.35rem;
   border-radius: 999px;
