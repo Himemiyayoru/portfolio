@@ -67,12 +67,13 @@ h1, h2, .statement, .lede {
   animation: gold-line 9s ease-in-out infinite;
 }
 
-.lamp {
+.trail {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 18;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  background: radial-gradient(520px circle at var(--lx, 78%) var(--ly, 0%), rgba(212, 180, 131, 0.08), transparent 58%);
 }
 
 .grain {
@@ -176,19 +177,6 @@ h1, h2, .statement, .lede {
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
-.plate::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(340px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(212, 180, 131, 0.2), transparent 46%);
-  transition: opacity 220ms ease;
-}
-
-.plate.is-lit::before { opacity: 1; }
-
 .plate > * { position: relative; z-index: 1; }
 
 .plate:hover,
@@ -212,20 +200,20 @@ h1, h2, .statement, .lede {
 
 .plate-art img { object-fit: cover; }
 
-.plate-art::after {
+.plate::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(115deg, transparent 36%, rgba(243, 234, 223, 0.22) 49%, transparent 62%);
+  background: linear-gradient(108deg, transparent 38%, rgba(212, 180, 131, 0.18) 46%, rgba(243, 234, 223, 0.42) 50%, rgba(212, 180, 131, 0.18) 54%, transparent 62%);
   transform: translateX(-130%);
 }
 
-.plate:hover .plate-art::after,
-.plate:focus-visible .plate-art::after {
+.plate:hover::after,
+.plate:focus-visible::after {
   transform: translateX(130%);
-  transition: transform 720ms ease;
+  transition: transform 900ms ease;
 }
 
 .plate-copy h2 {
@@ -776,6 +764,5 @@ h1, h2, .statement, .lede {
   .hime, .plate { transition: none !important; }
   .plate:hover, .plate:focus-visible { transform: none; }
   .mast::after { animation: none; }
-  .lamp { display: none; }
-  .plate-art::after { display: none; }
+  .plate::after { display: none; }
 }
