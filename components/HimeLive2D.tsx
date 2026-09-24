@@ -171,6 +171,38 @@ function mapRange(
   return output;
 }
 
+type MouthBlend = {
+  open: number;
+  silence: number;
+  a: number;
+  e: number;
+  i: number;
+  o: number;
+  u: number;
+};
+
+const mouthBlend = new WeakMap<CoreModel, MouthBlend>();
+
+function smoothMouth(core: CoreModel, vowel: HimePose["vowel"], amount: number) {
+  let state = mouthBlend.get(core);
+  if (!state) {
+    state = { open: 0, silence: 1, a: 0, e: 0, i: 0, o: 0, u: 0 };
+    mouthBlend.set(core, state);
+  }
+  const target = Math.min(1, Math.max(0, amount));
+  state.open += (target - state.open) * (target > state.open ? 0.22 : 0.1);
+  for (const key of ["a", "e", "i", "o", "u"] as const) {
+    const goal = vowel === key ? state.open : 0;
+    state[key] += (goal - state[key]) * 0.16;
+  }
+  const silenceGoal = vowel && state.open > 0.12 ? 0 : 1;
+  state.silence += (silenceGoal - state.silence) * 0.08;
+  return {
+    jaw: vowel ? state.open * 0.28 : state.open,
+    ...state,
+  };
+}
+
 function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
   // Same input ranges as 碳酸's VTube Studio bindings: FaceAngle drives the head and the body.
   core.setParameterValueById("ParamAngleX", mapRange(pose.x, -30, 30, -30, 30, false, false));
@@ -190,15 +222,14 @@ function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
   const smile =
     emotion === "happy" ? 0.7 : emotion === "sad" ? -0.55 : emotion === "angry" ? -0.35 : 0;
   core.setParameterValueById("ParamMouthForm", smile);
-  core.setParameterValueById("ParamMouthOpenY", pose.mouth);
-  const vowel = pose.vowel;
-  const open = pose.mouth;
-  core.setParameterValueById("ParamA", vowel === "a" ? open : 0);
-  core.setParameterValueById("ParamE", vowel === "e" ? open : 0);
-  core.setParameterValueById("ParamI", vowel === "i" ? open : 0);
-  core.setParameterValueById("ParamO", vowel === "o" ? open : 0);
-  core.setParameterValueById("ParamU", vowel === "u" ? open : 0);
-  core.setParameterValueById("ParamSilence", Math.min(1, Math.max(0, 1 - open)));
+  const mouth = smoothMouth(core, pose.vowel ?? null, pose.mouth);
+  core.setParameterValueById("ParamMouthOpenY", mouth.jaw);
+  core.setParameterValueById("ParamA", mouth.a);
+  core.setParameterValueById("ParamE", mouth.e);
+  core.setParameterValueById("ParamI", mouth.i);
+  core.setParameterValueById("ParamO", mouth.o);
+  core.setParameterValueById("ParamU", mouth.u);
+  core.setParameterValueById("ParamSilence", mouth.silence);
   core.setParameterValueById("ParamEyeLSmile", emotion === "happy" ? 0.8 : 0);
   core.setParameterValueById("ParamEyeRSmile", emotion === "happy" ? 0.8 : 0);
   core.setParameterValueById("ParamCheek", emotion === "happy" ? 0.45 : 0);

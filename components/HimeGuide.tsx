@@ -209,7 +209,7 @@ export function HimeGuide() {
         const unit = ((nowMs - talkStart) / span) * talkVowels.length;
         const index = Math.min(talkVowels.length - 1, Math.floor(unit));
         vowel = talkVowels[index];
-        voiced = Math.sin((unit - index) * Math.PI) * 0.9;
+        voiced = 0.46 + Math.sin((unit - index) * Math.PI) * 0.22;
       }
       const angles = [0, 0, 0];
       if (!reduce) {

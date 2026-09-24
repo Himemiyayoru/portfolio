@@ -71,6 +71,8 @@ export function Soundtrack() {
     const freq = new Uint8Array(1024);
     let frame = 0;
     let mouth = 0;
+    let heldVowel: HimePose["vowel"] = null;
+    let heldUntil = 0;
     let songEnergy = 0;
     let last = performance.now() / 1000;
     const started = last;
@@ -101,7 +103,17 @@ export function Soundtrack() {
         const mark = vocal.vowel[index];
         if (mark === "a" || mark === "e" || mark === "i" || mark === "o" || mark === "u") vowel = mark;
       }
-      mouth += (mouthTarget - mouth) * (mouthTarget > mouth ? 0.65 : 0.35);
+      if (vowel && now >= heldUntil && vowel !== heldVowel) {
+        heldVowel = vowel;
+        heldUntil = now + 0.16;
+      } else if (!heldVowel && vowel) {
+        heldVowel = vowel;
+        heldUntil = now + 0.16;
+      } else if (!vowel && now >= heldUntil) {
+        heldVowel = null;
+      }
+      vowel = heldVowel;
+      mouth += (mouthTarget - mouth) * (mouthTarget > mouth ? 0.28 : 0.1);
 
       let songLevel = 0;
       if (singing && !quiet && melodyRef.current && contextRef.current) {
