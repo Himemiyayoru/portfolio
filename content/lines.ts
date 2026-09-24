@@ -28,8 +28,8 @@ export const lines: Record<LineId, Line> = {
   },
   "crimson-moon": {
     id: "crimson-moon",
-    text: "Crimson Moon. Werewolf without the crowd. The witches are the reversed cards.",
-    emotion: "neutral",
+    text: "Crimson Moon. I play this one whenever I can. Werewolf, except the other seats are maidens, so nobody is staring. The witches are just the reversed cards.",
+    emotion: "happy",
     audio: "",
   },
   "bobs-special-blend": {

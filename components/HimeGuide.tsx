@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { isLineId, lines, type Emotion, type LineId } from "@/content/lines";
 import type { HimeHandle } from "@/components/HimeFigure";
 import { HimePortrait } from "@/components/HimeLive2D";
@@ -14,6 +15,8 @@ export function HimeGuide() {
   const emotionRef = useRef(emotion);
   emotionRef.current = emotion;
   const [unlocked, setUnlocked] = useState(false);
+  const pathname = usePathname();
+  const showRef = useRef<(id: LineId, replay?: boolean) => void>(() => {});
 
   useEffect(() => {
     const spoken = new Set<LineId>();
@@ -49,7 +52,7 @@ export function HimeGuide() {
       const line = lines[id];
       if (!line.audio) {
         playing = true;
-        const ms = Math.min(5600, 1100 + line.text.length * 36);
+        const ms = Math.min(8000, 1100 + line.text.length * 36);
         talkingUntil = performance.now() + ms;
         visualTimer = window.setTimeout(() => {
           playing = false;
@@ -89,7 +92,7 @@ export function HimeGuide() {
     function show(id: LineId, replay = false) {
       const line = lines[id];
       if (!replay && spoken.has(id)) return;
-      if (!replay) spoken.add(id);
+      spoken.add(id);
       lastId = id;
       setCaption(line.text);
       setEmotion(line.emotion);
@@ -139,6 +142,7 @@ export function HimeGuide() {
     window.addEventListener("keydown", onKey);
 
     document.documentElement.dataset.hime = "dock";
+    showRef.current = show;
     show("arrival");
 
     // Same idle loop as Project_Hime's VTS bridge: random-walk targets, a quiet
@@ -217,6 +221,7 @@ export function HimeGuide() {
     frame = window.requestAnimationFrame(tick);
 
     return () => {
+      showRef.current = () => {};
       window.clearTimeout(visualTimer);
       window.cancelAnimationFrame(frame);
       button?.removeEventListener("click", replay);
@@ -228,6 +233,10 @@ export function HimeGuide() {
       void audioCtx?.close();
     };
   }, []);
+
+  useEffect(() => {
+    if (pathname === "/work/crimson-moon") showRef.current("crimson-moon", true);
+  }, [pathname]);
 
   return (
     <aside className="hime" data-phase={phase} data-unlocked={unlocked ? "true" : "false"}>
