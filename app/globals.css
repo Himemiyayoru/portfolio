@@ -573,13 +573,15 @@ h1, h2, .statement, .lede {
   width: max-content;
   max-width: 100%;
   margin: 2.6rem auto;
-  grid-template-columns: auto minmax(0, 26rem);
+  grid-template-columns: auto minmax(0, 30rem);
   justify-content: center;
-  gap: 1.4rem 2.4rem;
+  gap: 1.4rem 3.6rem;
   align-items: center;
-  transform: translateX(6.6rem);
 }
-.split-text-left { grid-template-columns: minmax(0, 26rem) auto; }
+.split:nth-of-type(1),
+.split:nth-of-type(3) { transform: translateX(2.6rem); }
+.split:nth-of-type(2) { transform: translateX(10.6rem); }
+.split-text-left { grid-template-columns: minmax(0, 30rem) auto; }
 .split-text-left figure { order: 2; }
 .split figure { margin: 0; justify-self: center; }
 .split img {
