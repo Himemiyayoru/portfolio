@@ -614,8 +614,8 @@ h1, h2, .statement, .lede {
   position: absolute;
   height: 128%;
   width: auto;
-  left: 50%;
-  top: 19%;
+  left: 46%;
+  top: 34%;
   transform: translateX(-50%);
   user-select: none;
 }
