@@ -603,6 +603,22 @@ h1, h2, .statement, .lede {
   height: 100%;
   aspect-ratio: auto;
 }
+.score-mic-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  overflow: hidden;
+  pointer-events: none;
+}
+.score-mic {
+  position: absolute;
+  height: 128%;
+  width: auto;
+  left: 50%;
+  top: 19%;
+  transform: translateX(-50%);
+  user-select: none;
+}
 .player-bar {
   display: flex;
   flex-direction: column;

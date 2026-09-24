@@ -289,6 +289,9 @@ export function Soundtrack() {
         <div className="score-singer">
           <div className="score-stage-slot">
             <HimePortrait ref={figureRef} emotion={playing ? "happy" : "neutral"} followCursor={false} />
+            <div className="score-mic-frame" aria-hidden="true">
+              <img className="score-mic" src="/work/crimson-moon/bone-mic.png" alt="" />
+            </div>
           </div>
           <div className="player-bar">
             <button
