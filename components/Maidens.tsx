@@ -22,7 +22,7 @@ export function Maidens() {
     <div className="maidens">
       {maidens.map(([file, name]) => (
         <figure key={file}>
-          <img src={`/work/crimson-moon/maidens/${file}.png`} alt={name} />
+          <img src={`/work/crimson-moon/maidens/${file}.png`} alt={name} draggable={false} />
           <figcaption>{name}</figcaption>
         </figure>
       ))}

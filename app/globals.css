@@ -465,6 +465,8 @@ h1, h2, .statement, .lede {
   width: 100%;
   height: auto;
   border-radius: 0.9rem;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 .maidens figcaption {
   margin-top: 0.28rem;
@@ -473,6 +475,7 @@ h1, h2, .statement, .lede {
   font-size: 0.95rem;
   line-height: 1.15;
   text-align: center;
+  user-select: none;
 }
 
 .prose h2::after,
