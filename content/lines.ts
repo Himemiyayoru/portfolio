@@ -3,6 +3,7 @@ export type Emotion = "neutral" | "happy" | "angry" | "sad" | "shock";
 export type LineId =
   | "arrival"
   | "crimson-moon"
+  | "crimson-moon-card"
   | "bobs-special-blend"
   | "hime"
   | "forty-eight"
@@ -26,9 +27,15 @@ export const lines: Record<LineId, Line> = {
     emotion: "neutral",
     audio: "",
   },
+  "crimson-moon-card": {
+    id: "crimson-moon-card",
+    text: "This is an AI werewolf game. I really love playing it.",
+    emotion: "happy",
+    audio: "",
+  },
   "crimson-moon": {
     id: "crimson-moon",
-    text: "This game is called Crimson Moon. I like playing it, too. It's an AI werewolf game. The matches are tense and exciting, and the effects are really cool.",
+    text: "This werewolf game blends in tarot. The design is beautiful, and the effects look great. The matches are tense and exciting, but the AI makes it especially friendly for socially anxious players.",
     emotion: "happy",
     audio: "",
   },
