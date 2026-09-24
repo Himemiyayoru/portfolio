@@ -198,9 +198,31 @@ function smoothMouth(core: CoreModel, vowel: HimePose["vowel"], amount: number) 
   const silenceGoal = vowel && state.open > 0.12 ? 0 : 1;
   state.silence += (silenceGoal - state.silence) * 0.08;
   return {
-    jaw: vowel ? state.open * 0.28 : state.open,
+    jaw: 0,
     ...state,
   };
+}
+
+const teethIndex = new WeakMap<CoreModel, number[]>();
+
+function hideTeeth(core: CoreModel) {
+  try {
+    const opacities = (core as CoreModel & { _model?: { drawables: { opacities: { [index: number]: number } } } })._model?.drawables.opacities;
+    if (!opacities) return;
+    let indexes = teethIndex.get(core);
+    if (!indexes) {
+      indexes = [];
+      const count = core.getDrawableCount();
+      for (let i = 0; i < count; i += 1) {
+        const id = String(core.getDrawableId(i));
+        if (/牙|齿|tooth|teeth/i.test(id)) indexes.push(i);
+      }
+      teethIndex.set(core, indexes);
+    }
+    for (const index of indexes) opacities[index] = 0;
+  } catch {
+    teethIndex.set(core, []);
+  }
 }
 
 function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
@@ -224,6 +246,7 @@ function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
   core.setParameterValueById("ParamMouthForm", smile);
   const mouth = smoothMouth(core, pose.vowel ?? null, pose.mouth);
   core.setParameterValueById("ParamMouthOpenY", mouth.jaw);
+  core.setParameterValueById("ParamJawOpen", 0);
   core.setParameterValueById("ParamA", mouth.a);
   core.setParameterValueById("ParamE", mouth.e);
   core.setParameterValueById("ParamI", mouth.i);
@@ -422,6 +445,7 @@ function registerSeat(seat: Seat) {
       loaded.internalModel.update = (dt, now) => {
         applyPose(loaded.internalModel.coreModel, seat.getPose(), seat.getEmotion());
         update(dt, now);
+        hideTeeth(loaded.internalModel.coreModel);
       };
       seat.bust = bustFrame(
         loaded.internalModel.coreModel,
