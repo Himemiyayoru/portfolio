@@ -191,6 +191,14 @@ function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
     emotion === "happy" ? 0.7 : emotion === "sad" ? -0.55 : emotion === "angry" ? -0.35 : 0;
   core.setParameterValueById("ParamMouthForm", smile);
   core.setParameterValueById("ParamMouthOpenY", pose.mouth);
+  const vowel = pose.vowel;
+  const open = pose.mouth;
+  core.setParameterValueById("ParamA", vowel === "a" ? open : 0);
+  core.setParameterValueById("ParamE", vowel === "e" ? open : 0);
+  core.setParameterValueById("ParamI", vowel === "i" ? open : 0);
+  core.setParameterValueById("ParamO", vowel === "o" ? open : 0);
+  core.setParameterValueById("ParamU", vowel === "u" ? open : 0);
+  core.setParameterValueById("ParamSilence", Math.min(1, Math.max(0, 1 - open)));
   core.setParameterValueById("ParamEyeLSmile", emotion === "happy" ? 0.8 : 0);
   core.setParameterValueById("ParamEyeRSmile", emotion === "happy" ? 0.8 : 0);
   core.setParameterValueById("ParamCheek", emotion === "happy" ? 0.45 : 0);

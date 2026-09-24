@@ -10,6 +10,8 @@ export type HimePose = {
   z: number;
   blink: boolean;
   mouth: number;
+  /** A E I O U viseme. Absent means the mouth only opens, with no vowel shape. */
+  vowel?: "a" | "e" | "i" | "o" | "u" | null;
 };
 
 export type HimeFrame = "bust" | "stand";

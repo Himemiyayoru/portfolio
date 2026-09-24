@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { HimeHandle } from "@/components/HimeFigure";
+import type { HimeHandle, HimePose } from "@/components/HimeFigure";
 import { HimePortrait } from "@/components/HimeLive2D";
 import { judgmentDuskLyrics } from "@/content/judgment-dusk";
 import { getWork } from "@/content/works";
@@ -54,7 +54,7 @@ export function Soundtrack() {
   const figureRef = useRef<HimeHandle>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const melodyRef = useRef<AnalyserNode | null>(null);
-  const vocalRef = useRef<{ hop: number; mouth: number[] } | null>(null);
+  const vocalRef = useRef<{ hop: number; mouth: number[]; vowel: string } | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
   const playingRef = useRef(false);
   const scrubbingRef = useRef(false);
@@ -94,9 +94,12 @@ export function Soundtrack() {
 
       const vocal = vocalRef.current;
       let mouthTarget = 0;
+      let vowel: HimePose["vowel"] = null;
       if (singing && !quiet && vocal && audio) {
         const index = Math.floor(audio.currentTime / vocal.hop);
         mouthTarget = vocal.mouth[index] ?? 0;
+        const mark = vocal.vowel[index];
+        if (mark === "a" || mark === "e" || mark === "i" || mark === "o" || mark === "u") vowel = mark;
       }
       mouth += (mouthTarget - mouth) * (mouthTarget > mouth ? 0.65 : 0.35);
 
@@ -143,6 +146,7 @@ export function Soundtrack() {
         z: pose.z,
         blink: !quiet && elapsed % 4.8 < 0.12,
         mouth,
+        vowel,
       });
       frame = window.requestAnimationFrame(tick);
     };
@@ -154,8 +158,10 @@ export function Soundtrack() {
     let cancelled = false;
     fetch("/work/crimson-moon/lead-vocal-mouth.json")
       .then((response) => response.json())
-      .then((data: { hop: number; mouth: number[] }) => {
-        if (!cancelled && data?.hop && Array.isArray(data.mouth)) vocalRef.current = data;
+      .then((data: { hop: number; mouth: number[]; vowel: string }) => {
+        if (!cancelled && data?.hop && Array.isArray(data.mouth) && typeof data.vowel === "string") {
+          vocalRef.current = data;
+        }
       })
       .catch(() => {});
     return () => {

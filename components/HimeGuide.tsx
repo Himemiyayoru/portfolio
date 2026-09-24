@@ -31,6 +31,36 @@ export function HimeGuide() {
     let visualTimer = 0;
     let frame = 0;
 
+    const vowelOf: Record<string, "a" | "e" | "i" | "o" | "u"> = {
+      a: "a",
+      e: "e",
+      i: "i",
+      o: "o",
+      u: "u",
+      y: "i",
+    };
+
+    function visemesOf(text: string) {
+      const vowels: Array<"a" | "e" | "i" | "o" | "u"> = [];
+      const words = text.match(/[A-Za-z]+/g) ?? [];
+      for (const word of words) {
+        let k = 0;
+        while (k < word.length) {
+          const letter = word[k].toLowerCase();
+          if (vowelOf[letter]) {
+            vowels.push(vowelOf[letter]);
+            while (k < word.length && vowelOf[word[k].toLowerCase()]) k += 1;
+          } else {
+            k += 1;
+          }
+        }
+      }
+      return vowels;
+    }
+
+    let talkStart = 0;
+    let talkVowels: Array<"a" | "e" | "i" | "o" | "u"> = [];
+
     function level() {
       if (!analyser || !audio || audio.paused) return 0;
       analyser.getByteTimeDomainData(samples);
@@ -50,7 +80,9 @@ export function HimeGuide() {
       if (!line.audio) {
         playing = true;
         const ms = Math.min(5600, 1100 + line.text.length * 36);
-        talkingUntil = performance.now() + ms;
+        talkStart = performance.now();
+        talkVowels = visemesOf(line.text);
+        talkingUntil = talkStart + ms;
         visualTimer = window.setTimeout(() => {
           playing = false;
           talkingUntil = 0;
@@ -170,7 +202,15 @@ export function HimeGuide() {
       const dt = Math.min(0.05, Math.max(0, now - lastTick));
       lastTick = now;
       const blink = !reduce && elapsed % 4.6 < 0.12;
-      const voiced = nowMs < talkingUntil ? 0.25 + Math.abs(Math.sin(elapsed * 16)) * 0.75 : level();
+      let voiced = level();
+      let vowel: "a" | "e" | "i" | "o" | "u" | null = null;
+      if (nowMs < talkingUntil && talkVowels.length > 0) {
+        const span = Math.max(1, talkingUntil - talkStart);
+        const unit = ((nowMs - talkStart) / span) * talkVowels.length;
+        const index = Math.min(talkVowels.length - 1, Math.floor(unit));
+        vowel = talkVowels[index];
+        voiced = Math.sin((unit - index) * Math.PI) * 0.9;
+      }
       const angles = [0, 0, 0];
       if (!reduce) {
         voiceSmooth += (voiced - voiceSmooth) * 0.12;
@@ -211,6 +251,7 @@ export function HimeGuide() {
         z: angles[2],
         blink,
         mouth: voiced,
+        vowel,
       });
       frame = window.requestAnimationFrame(tick);
     };
