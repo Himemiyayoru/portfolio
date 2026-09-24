@@ -450,17 +450,29 @@ h1, h2, .statement, .lede {
 }
 .maidens {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.35rem;
   margin: 0.3rem 0 0.2rem;
   overflow-x: auto;
 }
-.maidens img {
+.maidens figure {
   flex: 1 0 0;
   min-width: 3.1rem;
-  width: auto;
+  margin: 0;
+}
+.maidens img {
+  display: block;
+  width: 100%;
   height: auto;
   border-radius: 0.9rem;
+}
+.maidens figcaption {
+  margin-top: 0.28rem;
+  color: #d4b483;
+  font-family: var(--serif);
+  font-size: 0.72rem;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .prose h2::after,

@@ -1,27 +1,30 @@
 const maidens = [
-  "nina",
-  "lilith",
-  "linne",
-  "cecilia",
-  "euphemia",
-  "vera",
-  "gwen",
-  "kara",
-  "noa",
-  "aino",
-  "player",
-  "ulr",
-  "rin",
-  "ciel",
-  "mia",
-  "freya",
-];
+  ["nina", "Nina"],
+  ["lilith", "Lilith"],
+  ["linne", "Linne"],
+  ["cecilia", "Cecilia"],
+  ["euphemia", "Euphemia"],
+  ["vera", "Vera"],
+  ["gwen", "Gwen"],
+  ["kara", "Kara"],
+  ["noa", "Noa"],
+  ["aino", "Aino"],
+  ["player", "Traveler"],
+  ["ulr", "Ulr"],
+  ["rin", "Rin"],
+  ["ciel", "Ciel"],
+  ["mia", "Mia"],
+  ["freya", "Freya"],
+] as const;
 
 export function Maidens() {
   return (
     <div className="maidens">
-      {maidens.map((name) => (
-        <img key={name} src={`/work/crimson-moon/maidens/${name}.png`} alt="" />
+      {maidens.map(([file, name]) => (
+        <figure key={file}>
+          <img src={`/work/crimson-moon/maidens/${file}.png`} alt={name} />
+          <figcaption>{name}</figcaption>
+        </figure>
       ))}
     </div>
   );
