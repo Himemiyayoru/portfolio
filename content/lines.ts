@@ -28,7 +28,7 @@ export const lines: Record<LineId, Line> = {
   },
   "crimson-moon": {
     id: "crimson-moon",
-    text: "Crimson Moon. I play this one whenever I can. Werewolf, except the other seats are maidens, so nobody is staring. The witches are just the reversed cards.",
+    text: "This game is called Crimson Moon. I like playing it, too. It's an AI werewolf game. The matches are tense and exciting, and the effects are really cool.",
     emotion: "happy",
     audio: "",
   },

@@ -45,6 +45,12 @@ export function HimeGuide() {
       return Math.min(1, Math.sqrt(sum / samples.length) * 5);
     }
 
+    function sentencesOf(text: string) {
+      const parts = text.match(/[^.!?]+[.!?]+/g);
+      const sentences = parts?.map((part) => part.trim()).filter(Boolean);
+      return sentences && sentences.length > 0 ? sentences : [text.trim()];
+    }
+
     function pump() {
       if (playing) return;
       const id = queue.shift();
@@ -52,13 +58,25 @@ export function HimeGuide() {
       const line = lines[id];
       if (!line.audio) {
         playing = true;
-        const ms = Math.min(8000, 1100 + line.text.length * 36);
-        talkingUntil = performance.now() + ms;
-        visualTimer = window.setTimeout(() => {
-          playing = false;
-          talkingUntil = 0;
-          pump();
-        }, ms);
+        const sentences = sentencesOf(line.text);
+        let index = 0;
+        const say = () => {
+          const sentence = sentences[index];
+          setCaption(sentence);
+          const ms = Math.min(3200, 900 + sentence.length * 42);
+          talkingUntil = performance.now() + ms;
+          visualTimer = window.setTimeout(() => {
+            index += 1;
+            if (index < sentences.length) {
+              say();
+              return;
+            }
+            playing = false;
+            talkingUntil = 0;
+            pump();
+          }, ms);
+        };
+        say();
         return;
       }
       if (!audio) {
@@ -94,7 +112,7 @@ export function HimeGuide() {
       if (!replay && spoken.has(id)) return;
       spoken.add(id);
       lastId = id;
-      setCaption(line.text);
+      setCaption(sentencesOf(line.text)[0] ?? line.text);
       setEmotion(line.emotion);
       if (line.audio && !audioUnlocked) {
         setHint(true);
