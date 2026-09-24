@@ -42,13 +42,49 @@ function MuteIcon() {
   );
 }
 
-export function Reel({ src, label }: { src: string; label: string }) {
+function ExpandIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9V4h5v2H6v3H4zm11-5h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm13 3h-3v2h5v-5h-2v3z" />
+    </svg>
+  );
+}
+
+function ShrinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 4v3H6v2h5V4H9zm6 3V4h-2v5h5V7h-3zM4 15v2h3v3h2v-5H4zm11 0v5h2v-3h3v-2h-5z" />
+    </svg>
+  );
+}
+
+export function Reel({
+  src,
+  label,
+  kicker = "Demo",
+  wide = false,
+}: {
+  src: string;
+  label: string;
+  kicker?: string;
+  wide?: boolean;
+}) {
+  const frameRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrubbingRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [full, setFull] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    function onFull() {
+      setFull(document.fullscreenElement === frameRef.current);
+    }
+    document.addEventListener("fullscreenchange", onFull);
+    return () => document.removeEventListener("fullscreenchange", onFull);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -101,10 +137,20 @@ export function Reel({ src, label }: { src: string; label: string }) {
     setMuted(video.muted);
   }
 
+  async function toggleFull() {
+    const frame = frameRef.current;
+    if (!frame) return;
+    if (document.fullscreenElement === frame) {
+      await document.exitFullscreen();
+    } else {
+      await frame.requestFullscreen();
+    }
+  }
+
   const progress = duration > 0 ? `${(time / duration) * 100}%` : "0%";
 
   return (
-    <figure className="reel">
+    <figure className={wide ? "reel reel-wide" : "reel"} ref={frameRef}>
       <video
         ref={videoRef}
         src={src}
@@ -138,7 +184,7 @@ export function Reel({ src, label }: { src: string; label: string }) {
         </button>
         <div className="player-track">
           <div className="player-name">
-            <span>Demo</span> {label}
+            <span>{kicker}</span> {label}
           </div>
           <input
             className="player-range"
@@ -178,6 +224,15 @@ export function Reel({ src, label }: { src: string; label: string }) {
           onClick={toggleMute}
         >
           {muted ? <MuteIcon /> : <SoundIcon />}
+        </button>
+        <button
+          type="button"
+          className="player-toggle"
+          aria-label={full ? "Exit full screen" : "Full screen"}
+          aria-pressed={full}
+          onClick={() => void toggleFull()}
+        >
+          {full ? <ShrinkIcon /> : <ExpandIcon />}
         </button>
       </div>
     </figure>
