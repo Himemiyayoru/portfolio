@@ -570,12 +570,16 @@ h1, h2, .statement, .lede {
 
 .split {
   display: grid;
-  grid-template-columns: minmax(12rem, 0.72fr) 1.28fr;
-  gap: 1.6rem 1.8rem;
+  width: max-content;
+  max-width: 100%;
+  margin: 2.6rem auto;
+  grid-template-columns: auto minmax(0, 26rem);
+  justify-content: center;
+  gap: 1.4rem 2.4rem;
   align-items: center;
-  margin: 2.4rem 0;
+  transform: translateX(6.6rem);
 }
-.split-text-left { grid-template-columns: 1.28fr minmax(12rem, 0.72fr); }
+.split-text-left { grid-template-columns: minmax(0, 26rem) auto; }
 .split-text-left figure { order: 2; }
 .split figure { margin: 0; justify-self: center; }
 .split img {
@@ -844,7 +848,7 @@ h1, h2, .statement, .lede {
   .reel-wide video { width: 100%; height: auto; max-height: min(52vh, 28rem); }
   .reel-bar { width: 100%; }
   .split,
-  .split-text-left { grid-template-columns: 1fr; }
+  .split-text-left { grid-template-columns: 1fr; width: auto; transform: none; }
   .split-text-left figure { order: 0; }
   .split img { height: min(48vh, 26rem); }
   .score.player { width: auto; margin-left: 0; padding: 0.9rem 0 1rem; }
