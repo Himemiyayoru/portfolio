@@ -448,6 +448,21 @@ h1, h2, .statement, .lede {
   margin: 1.8rem 0 0.55rem;
   color: #d4b483;
 }
+.maidens {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  margin: 0.3rem 0 0.2rem;
+  overflow-x: auto;
+}
+.maidens img {
+  flex: 1 0 0;
+  min-width: 3.1rem;
+  width: auto;
+  height: auto;
+  border-radius: 0.9rem;
+}
+
 .prose h2::after,
 .about h2::after {
   content: "";
