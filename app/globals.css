@@ -179,6 +179,11 @@ h1, h2, .statement, .lede {
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
+.plate,
+.plate * {
+  user-select: none;
+  -webkit-user-drag: none;
+}
 .plate > * { position: relative; z-index: 1; }
 
 .plate:hover,

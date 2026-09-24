@@ -11,7 +11,12 @@ export function Plates() {
         const art = work.cover ?? work.images[0];
         return (
           <li key={work.slug}>
-            <Link href={`/work/${work.slug}`} data-hime-zone={work.slug} className="plate">
+            <Link
+              href={`/work/${work.slug}`}
+              data-hime-zone={work.slug}
+              className="plate"
+              draggable={false}
+            >
               <span className="plate-index">{String(index + 1).padStart(2, "0")}</span>
               <div className={`plate-art plate-art-${work.frame}`}>
                 {art ? (
@@ -19,6 +24,7 @@ export function Plates() {
                     src={art.src}
                     alt=""
                     fill
+                    draggable={false}
                     priority={index === 0}
                     sizes="(max-width: 800px) 100vw, 40vw"
                     style={{ objectFit: "cover", objectPosition: work.frame === "phone" ? "center 42%" : "center" }}

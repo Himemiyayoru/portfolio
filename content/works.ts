@@ -92,18 +92,6 @@ export const works: Work[] = [
     frame: "wide",
     images: [],
   },
-  {
-    slug: "forty-eight",
-    title: "Forty-eight versions",
-    status: "In the lab",
-    year: "2026",
-    role: "Research system",
-    lede: "An automated trading experiment, rewritten forty-eight times. Backtests and paper runs both happened. A stable edge over buy-and-hold did not.",
-    plate: "Forty-eight rewrites. The edge never stabilized.",
-    tone: "night",
-    frame: "wide",
-    images: [],
-  },
 ];
 
 export function getWork(slug: string) {
