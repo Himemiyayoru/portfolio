@@ -9,9 +9,10 @@ import { Split } from "@/components/Split";
   width={900}
   height={1950}
   side="image-left"
+  shift="left"
   title="The library"
 >
-The library is the screen a cocktail app is expected to open on, and it is kept that way on purpose. Drinks are gathered into families and scrolled sideways, a run of photographs with the glass named under each card. More than four hundred recipes come from TheCocktailDB and keep their real names. A heart on the card sets one aside. The list is familiar so that everything after it can leave the list behind.
+The library is the screen a cocktail app is expected to open on, and it is kept that way on purpose. Each family is a horizontal row: highballs, sours, and the rest. A card shows the drink and its glass, and opens the recipe. More than four hundred recipes come from TheCocktailDB and keep their real names. A heart writes that recipe's id into storage on the phone. Saved is the same list, drawn as the same cards, so a drink you changed, or one Bob named, can be opened again without searching for it.
 </Split>
 
 <Split
@@ -20,9 +21,22 @@ The library is the screen a cocktail app is expected to open on, and it is kept 
   width={472}
   height={1024}
   side="text-left"
+  shift="right"
   title="The cabinet"
 >
-The cabinet is for a kitchen, not a backbar. You mark the bottles and mixers already in the house, and the app sets that shelf against every recipe. A drink you can pour now is a perfect match. A drink one or two ingredients short is almost there, with the missing name written on the card. The answer is only what the shelf can actually support.
+The cabinet is for a kitchen, not a backbar. You mark the bottles and mixers already in the house, and those marks stay on the phone. Matching is a set difference against every recipe. Nothing missing is a perfect match. One or two missing is almost there, with the missing names written on the card. The closer drinks are sorted first. The answer is only what the shelf can actually support.
+</Split>
+
+<Split
+  src="/work/bobs-special-blend/search.jpg"
+  alt="Search for old, with exact names and the nearest misspellings."
+  width={472}
+  height={1024}
+  side="image-left"
+  shift="left"
+  title="Search"
+>
+The names are already on the phone, and each letter filters them. A name that contains what you typed is an exact hit. If nothing contains it, the search counts how many edits would turn the query into a recipe name, keeps the ones within three edits, and shows the five closest. A misspelling still lands on a drink, and the keystrokes never leave the device.
 </Split>
 
 <Split
@@ -31,9 +45,12 @@ The cabinet is for a kitchen, not a backbar. You mark the bottles and mixers alr
   width={900}
   height={1950}
   side="image-left"
+  shift="left"
   title="The glass that recalculates"
 >
-A drink opens on its photograph. Change the view and the photograph gives way to a drawing of the glass. Move a measure, replace a bottle, or change the glass, and the drawing is made again: volume, color, and, on a layered shot, the bands themselves. Under the glass, the edit is set beside the original. Stronger, milder, sweeter, drier. A recipe list stops at the paragraph. Here the drink is a quantity you can watch move.
+A drink opens on its photograph. The other view draws the glass. Seven glasses are modeled, each with a capacity, and the liquid is clipped to that shape. Pass the capacity and the fill stops at the rim. Move a measure, replace a bottle, or change the glass, and the photograph gives way to the drawing, because the photograph is no longer the drink you are making.
+
+Alcohol and sweetness are volume-weighted averages of whatever is in the glass. Color is mixed by how much light each ingredient absorbs, then turned back into a color, so a dark bottle darkens the result instead of being averaged away. In the layered state, each ingredient is given a density from its sweetness and its alcohol, and the denser liquid is drawn underneath. The mixed state uses one blended color. Under the drawing, alcohol, sweetness, and volume are shown against the original, with the direction of the change: stronger, milder, sweeter, drier, or close to where it started. Substitutes are other ingredients in the same category, ranked by the distance between those physical values.
 </Split>
 
 <Split
@@ -42,6 +59,7 @@ A drink opens on its photograph. Change the view and the photograph gives way to
   width={900}
   height={1950}
   side="text-left"
+  shift="right"
   title="Ask Bob"
 >
 Ask Bob is the part of drinking alone that is still a conversation. You say how the day went, by typing or by holding the button and talking, and he answers the mood before he names a drink. The name is exactly one cocktail from the menu he was given. He does not invent one. The service checks that name against the catalog and opens the real recipe under the reply, so the conversation ends on a glass you can actually make.
@@ -64,28 +82,6 @@ Cocktail apps are catalogs. This one keeps the catalog, then lets the recipe be 
 The phone is React Native on Expo, in five tabs: Library, My Cabinet, Search, Ask Bob, and Saved. The service behind it is FastAPI. Recipes began as TheCocktailDB entries and were normalized into milliliters, a method, a glass, and a physics baseline for each ingredient: alcohol by volume, Brix, acidity, color, and how opaque it is. The photographs on the cards still come from TheCocktailDB. The glass is calculated on the phone, so moving a measure does not wait on the network.
 
 Bob and the transcription run on the service. The model is Llama 3.1, called through Groq, and the reply is kept short and in a fixed shape: what he says, and the drink's name. An exact match is tried first, then a partial one. A recommendation that is not on the menu is dropped, and Bob is left as conversation. Speech is transcribed with Whisper and sent on as the message. I made the app with Gemini.
-
-## Library
-
-Each family is a horizontal row: highballs, sours, and the rest. A card shows the drink and its glass, and opens the recipe. The heart writes that recipe's id into storage on the phone. Saved reads the same list.
-
-## Cabinet
-
-The bottles you mark stay on the phone. Matching is a set difference against every recipe. Nothing missing is a perfect match. One or two missing is almost there, and those names are shown on the card. The closer drinks are sorted first.
-
-## Search
-
-The names are already on the phone, and each letter filters them. A name that contains what you typed is an exact hit. If nothing contains it, the search counts how many edits would turn the query into a recipe name, keeps the ones within three edits, and shows the five closest. A misspelling still lands on a drink, and the keystrokes stay on the device.
-
-## Saved
-
-The heart stores a recipe id. Saved is that list, drawn as the same cards, so a drink you changed, or one Bob named, can be opened again without searching for it.
-
-## The recipe
-
-The screen opens on the photograph. The other view draws the glass. Seven glasses are modeled, each with a capacity, and the liquid is clipped to that shape. Pass the capacity and the fill stops at the rim. Changing the glass, the measure, or an ingredient switches into the drawing, because the photograph is no longer the drink you are making.
-
-Alcohol and sweetness are volume-weighted averages of whatever is in the glass. Color is mixed by how much light each ingredient absorbs, then turned back into a color, so a dark bottle darkens the result instead of being averaged away. In the layered state, each ingredient is given a density from its sweetness and its alcohol, and the denser liquid is drawn underneath. The mixed state uses one blended color. Under the drawing, alcohol, sweetness, and volume are shown against the original recipe, with the direction of the change. A swap also writes a short note: stronger, milder, sweeter, drier, or close to where it started. Substitutes are other ingredients in the same category, ranked by the distance between those physical values.
 
 ## How it was made
 

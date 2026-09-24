@@ -578,8 +578,8 @@ h1, h2, .statement, .lede {
   gap: 1.4rem 3.6rem;
   align-items: center;
 }
-.split:nth-of-type(odd) { transform: translateX(2.6rem); }
-.split:nth-of-type(even) { transform: translateX(10.6rem); }
+.split-shift-left { transform: translateX(2.6rem); }
+.split-shift-right { transform: translateX(10.6rem); }
 .split img,
 .shot-inline img {
   user-select: none;
