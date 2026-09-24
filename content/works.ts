@@ -39,7 +39,7 @@ export const works: Work[] = [
     status: "Shipped",
     year: "2026",
     role: "Game, art, sound",
-    lede: "A tarot werewolf for a player who would rather not face a crowd. AI maidens hold the other seats. Upright cards keep the village. Reversed cards are the witches.",
+    lede: "A tarot werewolf for a player who would rather not face a crowd. AI maidens hold the other seats. Each match deals a new table and a new set of powers. Upright cards keep the village. Reversed cards are the witches.",
     plate: "Werewolf, with tarot, for a player who does not want a crowd.",
     tone: "crimson",
     frame: "wide",
