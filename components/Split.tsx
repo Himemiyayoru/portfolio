@@ -14,7 +14,7 @@ export function Shot({
 }) {
   return (
     <figure className="shot-inline">
-      <Image src={src} alt={alt} width={width} height={height} />
+      <Image src={src} alt={alt} width={width} height={height} draggable={false} />
     </figure>
   );
 }
@@ -39,7 +39,7 @@ export function Split({
   return (
     <section className={`split split-${side}`}>
       <figure>
-        <Image src={src} alt={alt} width={width} height={height} />
+        <Image src={src} alt={alt} width={width} height={height} draggable={false} />
       </figure>
       <div>
         <h2>{title}</h2>

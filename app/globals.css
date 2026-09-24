@@ -578,9 +578,13 @@ h1, h2, .statement, .lede {
   gap: 1.4rem 3.6rem;
   align-items: center;
 }
-.split:nth-of-type(1),
-.split:nth-of-type(3) { transform: translateX(2.6rem); }
-.split:nth-of-type(2) { transform: translateX(10.6rem); }
+.split:nth-of-type(odd) { transform: translateX(2.6rem); }
+.split:nth-of-type(even) { transform: translateX(10.6rem); }
+.split img,
+.shot-inline img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
 .split-text-left { grid-template-columns: minmax(0, 30rem) auto; }
 .split-text-left figure { order: 2; }
 .split figure { margin: 0; justify-self: center; }

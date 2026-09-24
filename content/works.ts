@@ -68,7 +68,7 @@ export const works: Work[] = [
     status: "Shipped",
     year: "2026",
     role: "Product, mobile, local models",
-    lede: "A phone for mixing drinks that shows the glass change when the recipe does.",
+    lede: "A phone for mixing at home. Change a measure, and the glass is drawn again from the numbers.",
     plate: "A phone that turns a recipe change into a glass you can see.",
     tone: "amber",
     frame: "phone",
