@@ -6,10 +6,11 @@ export const site = {
   role: "Creative technologist",
   line: "Infusing life with intelligence; gilding the world with wonder.",
   /** Public address. Leave empty until you want it on the page. */
-  email: "",
+  email: "himemiyayoru@hotmail.com",
   /** For example "/resume.pdf" after the file is in public/. */
   resumeHref: "",
   github: "https://github.com/Himemiyayoru",
+  linkedin: "https://www.linkedin.com/in/himemiyayoru/",
   /**
    * Cubism model served from public/. Empty falls back to the drawn stand-in.
    * Driven parameters: ParamAngleX/Y/Z, ParamMouthOpenY, ParamEyeLOpen, ParamEyeROpen.

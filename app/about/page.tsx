@@ -3,7 +3,7 @@ import { site } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Education and the materials Yoru works with.",
+  description: "Study, practice, and how to reach Yoru.",
 };
 
 export default function AboutPage() {
@@ -14,30 +14,64 @@ export default function AboutPage() {
       </p>
       <h1>About</h1>
       <p className="lede">{site.line}</p>
+      <p>
+        The work joins artificial intelligence with art, and brings that intelligence into daily life.
+        Rensselaer taught computing and AI. Oregon was an education in art. Carnegie Mellon is the
+        study of data, kept with care, and of models, trained with care. Development is independent,
+        with AI as the instrument, and an idea is carried through until it is real.
+      </p>
       <ul className="schools">
         <li>
           <strong>Rensselaer Polytechnic Institute</strong>
-          <span>Computer Science, minor in Cognitive Science</span>
-          <p>How people perceive and decide.</p>
+          <span>2021–2022</span>
+          <p>Computing and artificial intelligence.</p>
         </li>
         <li>
           <strong>University of Oregon</strong>
-          <span>Bachelor of Arts</span>
-          <p>Image, sequence, and narrative.</p>
+          <span>2022–2024</span>
+          <p>Art.</p>
         </li>
         <li>
           <strong>Carnegie Mellon University</strong>
-          <span>Machine Learning and Data Science Foundations, through December 2026</span>
-          <p>Models as a material.</p>
+          <span>2026–2026</span>
+          <p>Data preparation and model training.</p>
         </li>
       </ul>
-      <h2>Materials</h2>
-      <p>
-        I generate images and video with Midjourney and Stable Diffusion, then finish them in
-        Photoshop, After Effects, and Premiere. I use Cursor to push a project from a rough system
-        into something you can run. When a character or a rule should stay on the machine, I keep
-        the model local.
-      </p>
+      <h2>Practice</h2>
+      <ul className="schools">
+        <li>
+          <strong>Image and motion</strong>
+          <p>Midjourney, Stable Diffusion, ComfyUI, Runway.</p>
+        </li>
+        <li>
+          <strong>Sound</strong>
+          <p>Suno.</p>
+        </li>
+        <li>
+          <strong>Adobe</strong>
+          <p>Photoshop, Illustrator, After Effects, Premiere.</p>
+        </li>
+        <li>
+          <strong>Build</strong>
+          <p>Cursor. Python.</p>
+        </li>
+      </ul>
+      <h2>Contact</h2>
+      <ul className="schools">
+        <li>
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </li>
+        <li>
+          <a href={site.github} target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a href={site.linkedin} target="_blank" rel="noreferrer">
+            LinkedIn
+          </a>
+        </li>
+      </ul>
     </article>
   );
 }

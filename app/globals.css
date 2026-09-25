@@ -853,6 +853,8 @@ h1, h2, .statement, .lede {
 .schools p { margin: 0.3rem 0 0; color: var(--muted); }
 .about h2 { font-family: var(--serif); font-weight: 460; font-size: 1.8rem; color: #d4b483; }
 .about > p { max-width: none; }
+.about a { color: var(--gold); text-decoration: none; }
+.about a:hover { text-decoration: underline; }
 
 @media (max-width: 800px) {
   .mast { flex-wrap: wrap; }
