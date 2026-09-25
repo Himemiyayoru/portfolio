@@ -12,7 +12,7 @@ import { Split } from "@/components/Split";
   shift="left"
   title="The library"
 >
-The library is the screen a cocktail app is expected to open on, and it is kept that way on purpose. Each family is a horizontal row: highballs, sours, and the rest. A card shows the drink and its glass, and opens the recipe. More than four hundred recipes come from TheCocktailDB and keep their real names. A heart writes that recipe's id into storage on the phone. Saved is the same list, drawn as the same cards, so a drink you changed, or one Bob named, can be opened again without searching for it.
+The library is the screen a cocktail app is expected to open on, and it is kept that way on purpose. Each family is a horizontal row: highballs, sours, and the rest. A card shows the drink and its glass, and opens the recipe. More than four hundred recipes come from TheCocktailDB and keep their real names. A heart writes that recipe's id into storage on the phone. Saved is that list, drawn as the same cards.
 </Split>
 
 <Split
@@ -40,6 +40,18 @@ The names are already on the phone, and each letter filters them. A name that co
 </Split>
 
 <Split
+  src="/work/bobs-special-blend/bob.jpg"
+  alt="Ask Bob, recommending a B-52 after a bad day."
+  width={900}
+  height={1950}
+  side="text-left"
+  shift="right"
+  title="Ask Bob"
+>
+Ask Bob is the part of drinking alone that is still a conversation. You say how the day went, by typing or by holding the button and talking, and he answers the mood before he names a drink. The name is exactly one cocktail from the menu he was given. He does not invent one. The service checks that name against the catalog and opens the real recipe under the reply, so the conversation ends on a glass you can actually make.
+</Split>
+
+<Split
   src="/work/bobs-special-blend/physics.jpg"
   alt="A layered shot redrawn from the recipe, with ABV, Brix, and volume beside the glass."
   width={900}
@@ -51,18 +63,6 @@ The names are already on the phone, and each letter filters them. A name that co
 A drink opens on its photograph. The other view draws the glass. Seven glasses are modeled, each with a capacity, and the liquid is clipped to that shape. Pass the capacity and the fill stops at the rim. Move a measure, replace a bottle, or change the glass, and the photograph gives way to the drawing, because the photograph is no longer the drink you are making.
 
 Alcohol and sweetness are volume-weighted averages of whatever is in the glass. Color is mixed by how much light each ingredient absorbs, then turned back into a color, so a dark bottle darkens the result instead of being averaged away. In the layered state, each ingredient is given a density from its sweetness and its alcohol, and the denser liquid is drawn underneath. The mixed state uses one blended color. Under the drawing, alcohol, sweetness, and volume are shown against the original, with the direction of the change: stronger, milder, sweeter, drier, or close to where it started. Substitutes are other ingredients in the same category, ranked by the distance between those physical values.
-</Split>
-
-<Split
-  src="/work/bobs-special-blend/bob.jpg"
-  alt="Ask Bob, recommending a B-52 after a bad day."
-  width={900}
-  height={1950}
-  side="text-left"
-  shift="right"
-  title="Ask Bob"
->
-Ask Bob is the part of drinking alone that is still a conversation. You say how the day went, by typing or by holding the button and talking, and he answers the mood before he names a drink. The name is exactly one cocktail from the menu he was given. He does not invent one. The service checks that name against the catalog and opens the real recipe under the reply, so the conversation ends on a glass you can actually make.
 </Split>
 
 ## Why it exists
