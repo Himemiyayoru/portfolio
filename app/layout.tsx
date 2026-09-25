@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono, Gloock } from "next/font/google";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Header } from "@/components/Header";
 import { HimeGuide } from "@/components/HimeGuide";
@@ -11,8 +11,9 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
 });
 
-const bodoni = Bodoni_Moda({
+const gloock = Gloock({
   subsets: ["latin"],
+  weight: "400",
   variable: "--font-luxury",
 });
 
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${bodoni.variable} ${geist.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${gloock.variable} ${geist.variable} ${geistMono.variable}`}>
       <body>
         <Atmosphere />
         <Header />
