@@ -70,7 +70,7 @@ export const lines: Record<LineId, Line> = {
   },
   "poke-tickle": {
     id: "poke-tickle",
-    text: "That tickles! That tickles! Stop playing with me!",
+    text: "That tickles! Stop playing with me!",
     emotion: "shock",
     audio: "/hime/lines/poke-tickle.mp3",
   },
