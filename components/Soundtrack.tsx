@@ -82,6 +82,7 @@ export function Soundtrack() {
     let bounceStart = 0;
     let bounceDuration = 0;
     let bounceAmp = 0;
+    const shown = { x: 0, y: 0, z: 0 };
 
     const tick = (nowMs: number) => {
       const now = nowMs / 1000;
@@ -130,11 +131,22 @@ export function Soundtrack() {
         nextBounce = now + (1.5 + Math.random() * 3) / Math.max(energy, 0.3);
       }
       if (bounceStart) {
-        const t = (now - bounceStart) / bounceDuration;
+        const t = Math.min(1, (now - bounceStart) / bounceDuration);
         const pulse = Math.sin(Math.PI * t);
         pose.y += bounceAmp * pulse;
         pose.z += bounceAmp * 0.6 * pulse;
+        if (t >= 1) bounceStart = 0;
       }
+
+      // A late frame used to drop the nod, or a new sway target used to reverse
+      // in one step. Keep the rhythm, but don't let the body jump.
+      const maxRate = 90;
+      names.forEach((name) => {
+        const delta = pose[name] - shown[name];
+        const limit = maxRate * Math.max(dt, 1 / 120);
+        shown[name] += Math.max(-limit, Math.min(limit, delta));
+        pose[name] = shown[name];
+      });
 
       figureRef.current?.setFrame?.("bust");
       figureRef.current?.setPose({
