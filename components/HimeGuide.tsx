@@ -254,6 +254,7 @@ export function HimeGuide() {
 
   useEffect(() => {
     if (pathname === "/work/crimson-moon") showRef.current("crimson-moon", true);
+    if (pathname === "/work/bobs-special-blend") showRef.current("bobs-special-blend", true);
   }, [pathname]);
 
   return (

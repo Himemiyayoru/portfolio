@@ -5,6 +5,7 @@ export type LineId =
   | "crimson-moon"
   | "crimson-moon-card"
   | "bobs-special-blend"
+  | "bobs-special-blend-card"
   | "hime"
   | "forty-eight"
   | "about";
@@ -39,9 +40,15 @@ export const lines: Record<LineId, Line> = {
     emotion: "happy",
     audio: "",
   },
+  "bobs-special-blend-card": {
+    id: "bobs-special-blend-card",
+    text: "This is a cocktail app. My brother loves cocktails. When I grow up, I can taste them with him.",
+    emotion: "happy",
+    audio: "",
+  },
   "bobs-special-blend": {
     id: "bobs-special-blend",
-    text: "Bob's Special Blend. Taste, written as physics. The bartender is the interface.",
+    text: "This is a cocktail app for the phone, made for people who mix at home. Its real trick is how far you can customize a recipe, then see the difference in taste, color, and the rest. Whenever I watch that change, I feel a little flutter for cocktails too.",
     emotion: "happy",
     audio: "",
   },

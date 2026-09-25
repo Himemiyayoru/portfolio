@@ -81,7 +81,7 @@ Cocktail apps are catalogs. This one keeps the catalog, then lets the recipe be 
 
 The phone is React Native on Expo, in five tabs: Library, My Cabinet, Search, Ask Bob, and Saved. The service behind it is FastAPI. Recipes began as TheCocktailDB entries and were normalized into milliliters, a method, a glass, and a physics baseline for each ingredient: alcohol by volume, Brix, acidity, color, and how opaque it is. The photographs on the cards still come from TheCocktailDB. The glass is calculated on the phone, so moving a measure does not wait on the network.
 
-Bob and the transcription run on the service. The model is Llama 3.1, called through Groq, and the reply is kept short and in a fixed shape: what he says, and the drink's name. An exact match is tried first, then a partial one. A recommendation that is not on the menu is dropped, and Bob is left as conversation. Speech is transcribed with Whisper and sent on as the message. I made the app with Gemini.
+Bob and the transcription run on the service. The model is Llama 3.1, called through Groq, and the reply is kept short and in a fixed shape: what he says, and the drink's name. An exact match is tried first, then a partial one. A recommendation that is not on the menu is dropped, and Bob is left as conversation. Speech is transcribed with Whisper and sent on as the message.
 
 ## How it was made
 

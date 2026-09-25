@@ -13,7 +13,13 @@ export function Plates() {
           <li key={work.slug}>
             <Link
               href={`/work/${work.slug}`}
-              data-hime-zone={work.slug === "crimson-moon" ? "crimson-moon-card" : work.slug}
+              data-hime-zone={
+                work.slug === "crimson-moon"
+                  ? "crimson-moon-card"
+                  : work.slug === "bobs-special-blend"
+                    ? "bobs-special-blend-card"
+                    : work.slug
+              }
               className="plate"
               draggable={false}
             >
