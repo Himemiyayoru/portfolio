@@ -16,10 +16,9 @@ export function HimeGuide() {
   emotionRef.current = emotion;
   const [unlocked, setUnlocked] = useState(false);
   const pathname = usePathname();
-  const showRef = useRef<(id: LineId, replay?: boolean) => void>(() => {});
+  const showRef = useRef<(id: LineId) => void>(() => {});
 
   useEffect(() => {
-    const spoken = new Set<LineId>();
     const queue: LineId[] = [];
     let playing = false;
     let lastId: LineId | null = null;
@@ -107,21 +106,63 @@ export function HimeGuide() {
       });
     }
 
-    function show(id: LineId, replay = false) {
+    const workLines = new Set<LineId>([
+      "crimson-moon",
+      "crimson-moon-card",
+      "bobs-special-blend",
+      "bobs-special-blend-card",
+      "hime",
+      "hime-card",
+      "about",
+      "forty-eight",
+    ]);
+    let activeWork: LineId | null = null;
+    let speech = 0;
+
+    function show(id: LineId) {
+      window.clearTimeout(visualTimer);
+      speech += 1;
+      const mine = speech;
+      playing = false;
+      talkingUntil = 0;
+      queue.length = 0;
+      if (audio) audio.pause();
       const line = lines[id];
-      if (!replay && spoken.has(id)) return;
-      spoken.add(id);
       lastId = id;
-      setCaption(sentencesOf(line.text)[0] ?? line.text);
       setEmotion(line.emotion);
+      setHint(false);
       if (line.audio && !audioUnlocked) {
         setHint(true);
         pendingAudio = id;
+        setCaption(sentencesOf(line.text)[0] ?? line.text);
         return;
       }
-      setHint(false);
-      queue.push(id);
-      pump();
+      pendingAudio = null;
+      if (line.audio) {
+        queue.push(id);
+        pump();
+        return;
+      }
+      playing = true;
+      const sentences = sentencesOf(line.text);
+      let index = 0;
+      const say = () => {
+        if (mine !== speech) return;
+        setCaption(sentences[index]);
+        const ms = Math.min(3200, 900 + sentences[index].length * 42);
+        talkingUntil = performance.now() + ms;
+        visualTimer = window.setTimeout(() => {
+          if (mine !== speech) return;
+          index += 1;
+          if (index < sentences.length) {
+            say();
+            return;
+          }
+          playing = false;
+          talkingUntil = 0;
+        }, ms);
+      };
+      say();
     }
 
     function onZone(event: Event) {
@@ -129,7 +170,17 @@ export function HimeGuide() {
       if (!(target instanceof Element)) return;
       const zone = target.closest("[data-hime-zone]")?.getAttribute("data-hime-zone");
       if (!zone || !isLineId(zone) || zone === "arrival") return;
+      if (zone === activeWork) return;
+      activeWork = zone;
       show(zone);
+    }
+
+    function onHimeClick(event: Event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (playing && lastId && workLines.has(lastId)) return;
+      const choices: LineId[] = ["poke-tickle", "poke-beauty", "poke-affection"];
+      show(choices[Math.floor(Math.random() * choices.length)]);
     }
 
     function onPointerDown() {
@@ -148,19 +199,18 @@ export function HimeGuide() {
       if (event.key === "Enter" || event.key === " ") onPointerDown();
     }
 
-    function replay() {
-      if (lastId) show(lastId, true);
-    }
-
     const button = document.querySelector("[data-hime-replay]");
-    button?.addEventListener("click", replay);
+    button?.addEventListener("click", onHimeClick);
     document.addEventListener("pointerover", onZone);
     document.addEventListener("focusin", onZone);
     window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKey);
 
     document.documentElement.dataset.hime = "dock";
-    showRef.current = show;
+    showRef.current = (id) => {
+      activeWork = id;
+      show(id);
+    };
     show("arrival");
 
     // Same idle loop as Project_Hime's VTS bridge: random-walk targets, a quiet
@@ -242,7 +292,7 @@ export function HimeGuide() {
       showRef.current = () => {};
       window.clearTimeout(visualTimer);
       window.cancelAnimationFrame(frame);
-      button?.removeEventListener("click", replay);
+      button?.removeEventListener("click", onHimeClick);
       document.removeEventListener("pointerover", onZone);
       document.removeEventListener("focusin", onZone);
       window.removeEventListener("pointerdown", onPointerDown);
@@ -266,7 +316,7 @@ export function HimeGuide() {
           {hint ? <p className="hime-hint">Tap once and I&apos;ll talk.</p> : null}
         </div>
       ) : null}
-      <button type="button" className="hime-button" data-hime-replay="" aria-label="Replay Hime's last line">
+        <button type="button" className="hime-button" data-hime-replay="" aria-label="Hime">
         <HimePortrait ref={figureRef} emotion={emotion} />
         <span>Hime</span>
       </button>

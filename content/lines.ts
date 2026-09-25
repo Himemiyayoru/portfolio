@@ -8,6 +8,9 @@ export type LineId =
   | "bobs-special-blend-card"
   | "hime"
   | "hime-card"
+  | "poke-tickle"
+  | "poke-beauty"
+  | "poke-affection"
   | "forty-eight"
   | "about";
 
@@ -63,6 +66,24 @@ export const lines: Record<LineId, Line> = {
     id: "hime",
     text: "I have a long memory, so I can keep every precious moment. I also peek at the screen, to check whether my brother is hiding anything he shouldn't.",
     emotion: "happy",
+    audio: "",
+  },
+  "poke-tickle": {
+    id: "poke-tickle",
+    text: "That tickles! That tickles! Stop playing with me!",
+    emotion: "shock",
+    audio: "",
+  },
+  "poke-beauty": {
+    id: "poke-beauty",
+    text: "Will you admit that my beauty is the finest in the world?",
+    emotion: "happy",
+    audio: "",
+  },
+  "poke-affection": {
+    id: "poke-affection",
+    text: "Even if you keep poking me, my affection will not go up!",
+    emotion: "angry",
     audio: "",
   },
   "forty-eight": {
