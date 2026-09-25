@@ -207,7 +207,7 @@ export function HimeGuide() {
     function onHimeClick(event: Event) {
       event.preventDefault();
       event.stopPropagation();
-      if (playing && lastId && workLines.has(lastId)) return;
+      if (playing || (audio && !audio.paused)) return;
       const choices: LineId[] = ["poke-tickle", "poke-beauty", "poke-affection"];
       show(choices[Math.floor(Math.random() * choices.length)]);
     }
