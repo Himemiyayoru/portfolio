@@ -25,7 +25,7 @@ The reply is one streamed model. An earlier design spoke a short lead-in from a 
 
 The speaking voice is a local GPT-SoVITS timbre, trained for this character rather than taken from a stock narrator. At synthesis time each request carries a reference recording of that voice and the transcript of the clip, which is what holds the timbre in place. Chinese, English, and Japanese can each keep their own reference. The name Hime is always split out and voiced on the Japanese path, because the name does not change pronunciation with the sentence around it.
 
-A mixed sentence is split by script. Every segment is requested at once, edge silence is trimmed, and the pieces are crossfaded into one clip, so a change of language does not click. Words inside parentheses are stage directions. They are stripped before synthesis, including a bracket that is still open at the end of one streamed clause. The next clause inherits that state, so an action is not suddenly read aloud. Playback can be interrupted the moment the person starts talking.
+A mixed sentence is split by script. Every segment is requested at once, edge silence is trimmed, and the pieces are crossfaded into one clip, so a change of language does not click. Playback can be interrupted the moment the person starts talking.
 
 ## Memory
 
