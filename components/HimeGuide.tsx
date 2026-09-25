@@ -22,6 +22,7 @@ export function HimeGuide() {
     const queue: LineId[] = [];
     let playing = false;
     let lastId: LineId | null = null;
+    let lastPoke: LineId | null = null;
     let pendingAudio: LineId | null = null;
     let audioUnlocked = false;
     let talkingUntil = 0;
@@ -217,7 +218,10 @@ export function HimeGuide() {
       event.stopPropagation();
       if (playing || (audio && !audio.paused)) return;
       const choices: LineId[] = ["poke-tickle", "poke-beauty", "poke-affection"];
-      show(choices[Math.floor(Math.random() * choices.length)]);
+      const pool = choices.filter((id) => id !== lastPoke);
+      const next = pool[Math.floor(Math.random() * pool.length)];
+      lastPoke = next;
+      show(next);
     }
 
     function onPointerDown(event?: Event) {
