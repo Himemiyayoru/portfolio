@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist, Geist_Mono, Gloock } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Header } from "@/components/Header";
 import { HimeGuide } from "@/components/HimeGuide";
@@ -9,12 +9,6 @@ import "./globals.css";
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
-});
-
-const gloock = Gloock({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-luxury",
 });
 
 const geist = Geist({
@@ -37,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${gloock.variable} ${geist.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${geist.variable} ${geistMono.variable}`}>
       <body>
         <Atmosphere />
         <Header />
