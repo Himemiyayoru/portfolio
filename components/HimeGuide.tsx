@@ -80,12 +80,7 @@ export function HimeGuide() {
       }
       if (!audio) {
         audio = new Audio();
-        audio.preload = "none";
-        audio.addEventListener("ended", () => {
-          playing = false;
-          talkingUntil = 0;
-          pump();
-        });
+        audio.preload = "auto";
       }
       if (!audioCtx) {
         const Ctx = window.AudioContext;
@@ -97,12 +92,39 @@ export function HimeGuide() {
         analyser.connect(audioCtx.destination);
       }
       void audioCtx.resume();
+      const mine = speech;
+      const sentences = sentencesOf(line.text);
+      const total = sentences.reduce((sum, sentence) => sum + sentence.length, 0) || 1;
+      const follow = (durationMs: number) => {
+        if (mine !== speech) return;
+        window.clearTimeout(visualTimer);
+        let index = 0;
+        const step = () => {
+          if (mine !== speech) return;
+          setCaption(sentences[index]);
+          const wait = (sentences[index].length / total) * durationMs;
+          index += 1;
+          if (index >= sentences.length) return;
+          visualTimer = window.setTimeout(step, wait);
+        };
+        step();
+      };
+      audio.onended = () => {
+        if (mine !== speech) return;
+        playing = false;
+        talkingUntil = 0;
+      };
       playing = true;
       talkingUntil = 0;
+      setCaption(sentences[0] ?? line.text);
       audio.src = line.audio;
+      audio.onloadedmetadata = () => {
+        if (mine !== speech || !Number.isFinite(audio?.duration)) return;
+        follow((audio?.duration ?? 0) * 1000);
+      };
       void audio.play().catch(() => {
+        if (mine !== speech) return;
         playing = false;
-        pump();
       });
     }
 
@@ -126,7 +148,14 @@ export function HimeGuide() {
       playing = false;
       talkingUntil = 0;
       queue.length = 0;
-      if (audio) audio.pause();
+      if (audio) {
+        audio.pause();
+        try {
+          audio.currentTime = 0;
+        } catch {
+          /* metadata not ready yet */
+        }
+      }
       const line = lines[id];
       lastId = id;
       setEmotion(line.emotion);
@@ -183,10 +212,18 @@ export function HimeGuide() {
       show(choices[Math.floor(Math.random() * choices.length)]);
     }
 
-    function onPointerDown() {
+    function onPointerDown(event?: Event) {
       audioUnlocked = true;
       setUnlocked(true);
       setHint(false);
+      const target = event?.target;
+      if (
+        target instanceof Element &&
+        (target.closest("[data-hime-replay]") || target.closest("a[data-hime-zone]"))
+      ) {
+        pendingAudio = null;
+        return;
+      }
       const waiting = pendingAudio;
       pendingAudio = null;
       if (waiting) {
