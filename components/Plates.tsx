@@ -18,7 +18,9 @@ export function Plates() {
                   ? "crimson-moon-card"
                   : work.slug === "bobs-special-blend"
                     ? "bobs-special-blend-card"
-                    : work.slug
+                    : work.slug === "hime"
+                      ? "hime-card"
+                      : work.slug
               }
               className="plate"
               draggable={false}

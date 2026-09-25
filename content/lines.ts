@@ -7,6 +7,7 @@ export type LineId =
   | "bobs-special-blend"
   | "bobs-special-blend-card"
   | "hime"
+  | "hime-card"
   | "forty-eight"
   | "about";
 
@@ -52,10 +53,16 @@ export const lines: Record<LineId, Line> = {
     emotion: "happy",
     audio: "",
   },
+  "hime-card": {
+    id: "hime-card",
+    text: "This is me! The cutest girl of the 21st century!",
+    emotion: "happy",
+    audio: "",
+  },
   hime: {
     id: "hime",
-    text: "This one is me, still in the lab. Vision is the part being tuned.",
-    emotion: "neutral",
+    text: "I have a long memory, so I can keep every precious moment. I also peek at the screen, to check whether my brother is hiding anything he shouldn't.",
+    emotion: "happy",
     audio: "",
   },
   "forty-eight": {
