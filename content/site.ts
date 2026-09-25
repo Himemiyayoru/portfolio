@@ -4,7 +4,7 @@ export const site = {
   /** Legal name, shown beside Yoru once you set it. */
   legalName: "Jiahao Li",
   role: "Creative technologist",
-  line: "Yoru is devoted to weaving AI into daily life, and to making the world more luminous through it.",
+  line: "AI, woven into daily life. A more luminous world.",
   /** Public address. Leave empty until you want it on the page. */
   email: "",
   /** For example "/resume.pdf" after the file is in public/. */
