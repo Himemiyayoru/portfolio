@@ -217,12 +217,22 @@ export function HimeGuide() {
       setUnlocked(true);
       setHint(false);
       const target = event?.target;
-      if (
-        target instanceof Element &&
-        (target.closest("[data-hime-replay]") || target.closest("a[data-hime-zone]"))
-      ) {
+      if (target instanceof Element && target.closest("[data-hime-replay]")) {
         pendingAudio = null;
         return;
+      }
+      const zone =
+        target instanceof Element
+          ? target.closest("a[data-hime-zone]")?.getAttribute("data-hime-zone")
+          : null;
+      if (zone && isLineId(zone)) {
+        const page = zone.endsWith("-card") ? zone.slice(0, -"-card".length) : zone;
+        if (isLineId(page)) {
+          pendingAudio = null;
+          activeWork = page;
+          show(page);
+          return;
+        }
       }
       const waiting = pendingAudio;
       pendingAudio = null;
@@ -245,6 +255,7 @@ export function HimeGuide() {
 
     document.documentElement.dataset.hime = "dock";
     showRef.current = (id) => {
+      if (id === activeWork) return;
       activeWork = id;
       show(id);
     };
@@ -340,9 +351,9 @@ export function HimeGuide() {
   }, []);
 
   useEffect(() => {
-    if (pathname === "/work/crimson-moon") showRef.current("crimson-moon", true);
-    if (pathname === "/work/bobs-special-blend") showRef.current("bobs-special-blend", true);
-    if (pathname === "/work/hime") showRef.current("hime", true);
+    if (pathname === "/work/crimson-moon") showRef.current("crimson-moon");
+    if (pathname === "/work/bobs-special-blend") showRef.current("bobs-special-blend");
+    if (pathname === "/work/hime") showRef.current("hime");
   }, [pathname]);
 
   return (
