@@ -24,24 +24,32 @@ export default function AboutPage() {
         <li>
           <strong>Rensselaer Polytechnic Institute</strong>
           <span>2021–2022</span>
-          <p>Coursework, Computer Science, minor in Cognitive Science</p>
+          <p>Coursework</p>
+          <p>Computer Science minor in Cognitive Science</p>
         </li>
         <li>
           <strong>University of Oregon</strong>
           <span>2022–2024</span>
-          <p>Bachelor, Art</p>
+          <p>Bachelor</p>
+          <p>Art</p>
         </li>
         <li>
           <strong>Carnegie Mellon University</strong>
           <span>2026–2026</span>
-          <p>Certificate, Machine Learning and Data Science Foundation</p>
+          <p>Certificate</p>
+          <p>Machine Learning and Data Science Foundation</p>
         </li>
       </ul>
       <h2>Practice</h2>
       <ul className="schools">
         <li>
           <strong>Image and motion</strong>
-          <p>Midjourney Stable Diffusion ComfyUI Runway</p>
+          <p className="skill-row">
+            <span>Midjourney</span>
+            <span>Stable Diffusion</span>
+            <span>ComfyUI</span>
+            <span>Runway</span>
+          </p>
         </li>
         <li>
           <strong>Sound</strong>
@@ -49,11 +57,19 @@ export default function AboutPage() {
         </li>
         <li>
           <strong>Adobe</strong>
-          <p>Photoshop Illustrator After Effects Premiere</p>
+          <p className="skill-row">
+            <span>Photoshop</span>
+            <span>Illustrator</span>
+            <span>After Effects</span>
+            <span>Premiere</span>
+          </p>
         </li>
         <li>
           <strong>Build</strong>
-          <p>Cursor Python</p>
+          <p className="skill-row">
+            <span>Cursor</span>
+            <span>Python</span>
+          </p>
         </li>
       </ul>
       <h2>Contact</h2>

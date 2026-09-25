@@ -851,6 +851,18 @@ h1, h2, .statement, .lede {
 .schools strong { display: block; font-family: var(--serif); font-size: 1.4rem; font-weight: 460; }
 .schools span { color: var(--gold); font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em; }
 .schools p { margin: 0.3rem 0 0; color: var(--muted); }
+.skill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1.75rem;
+}
+.skill-row span {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .about h2 { font-family: var(--serif); font-weight: 460; font-size: 1.8rem; color: #d4b483; }
 .about > p { max-width: none; }
 .about a { color: var(--gold); text-decoration: none; }
