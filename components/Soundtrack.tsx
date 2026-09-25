@@ -30,32 +30,11 @@ function PauseIcon() {
   );
 }
 
-function band(data: Uint8Array, sampleRate: number, low: number, high: number) {
-  const bin = sampleRate / 2 / data.length;
-  let sum = 0;
-  let count = 0;
-  for (let i = 0; i < data.length; i += 1) {
-    const hz = i * bin;
-    if (hz < low || hz > high) continue;
-    sum += data[i] / 255;
-    count += 1;
-  }
-  return count ? sum / count : 0;
-}
-
-type SwayAxis = { current: number; target: number; next: number };
-
-function axis(): SwayAxis {
-  return { current: 0, target: 0, next: 0 };
-}
-
 export function Soundtrack() {
   const score = getWork("crimson-moon")?.score;
   const figureRef = useRef<HimeHandle>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const melodyRef = useRef<AnalyserNode | null>(null);
   const vocalRef = useRef<{ hop: number; mouth: number[] } | null>(null);
-  const contextRef = useRef<AudioContext | null>(null);
   const playingRef = useRef(false);
   const scrubbingRef = useRef(false);
   const [playing, setPlaying] = useState(false);
@@ -68,21 +47,22 @@ export function Soundtrack() {
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const freq = new Uint8Array(1024);
     let frame = 0;
     let mouth = 0;
-    let songEnergy = 0;
     let last = performance.now() / 1000;
     const started = last;
-    const sway = { x: axis(), y: axis(), z: axis() };
-    const breathHz = [0.16, 0.1, 0.07];
-    const breathPhase = [0, 1.7, 3.1];
-    const baseAmp = [10, 6, 7];
-    let nextBounce = last + 1.6;
-    let bounceStart = 0;
+    // Same idle loop as Project_Hime: her own random walk, a quiet breath, and
+    // an occasional nod. The body does not listen to the score.
+    const moodScale = { happy: 1.4, neutral: 1 };
+    const baseAmplitude = [18, 10, 12];
+    const breathFreqs = [0.16, 0.1, 0.07];
+    const breathPhases = [0, 1.7, 3.1];
+    const step = 0.05;
+    const sway = [0, 1, 2].map(() => ({ current: 0, target: 0, nextRetarget: 0 }));
+    let nextBounce = 0;
+    let bounceStart: number | null = null;
     let bounceDuration = 0;
-    let bounceAmp = 0;
-    const shown = { x: 0, y: 0, z: 0 };
+    let bounceAmplitude = 0;
 
     const tick = (nowMs: number) => {
       const now = nowMs / 1000;
@@ -95,64 +75,48 @@ export function Soundtrack() {
 
       const vocal = vocalRef.current;
       let mouthTarget = 0;
-      if (singing && !quiet && vocal && audio) {
+      if (singing && vocal && audio) {
         const index = Math.floor(audio.currentTime / vocal.hop);
         mouthTarget = vocal.mouth[index] ?? 0;
       }
       mouth += (mouthTarget - mouth) * (mouthTarget > mouth ? 0.65 : 0.35);
 
-      let songLevel = 0;
-      if (singing && !quiet && melodyRef.current && contextRef.current) {
-        melodyRef.current.getByteFrequencyData(freq);
-        songLevel = band(freq, contextRef.current.sampleRate, 80, 4000);
-      }
-      songEnergy += ((singing ? songLevel : 0) - songEnergy) * 0.12;
-      const energy = quiet ? 0 : 0.55 + 0.9 * songEnergy;
-
-      const names = ["x", "y", "z"] as const;
-      const pose = { x: 0, y: 0, z: 0 };
-      names.forEach((name, i) => {
-        const amp = baseAmp[i] * energy;
-        const state = sway[name];
-        if (now >= state.next) {
-          state.target = (Math.random() * 2 - 1) * amp;
-          state.next = now + (0.35 + Math.random() * 0.75) / Math.max(energy, 0.3);
+      const angles = [0, 0, 0];
+      if (!quiet) {
+        const energy = moodScale[singing ? "happy" : "neutral"] * 0.6;
+        for (let i = 0; i < sway.length; i += 1) {
+          const amp = baseAmplitude[i] * energy;
+          const state = sway[i];
+          if (now >= state.nextRetarget) {
+            state.target = (Math.random() * 2 - 1) * amp;
+            state.nextRetarget = now + (0.35 + Math.random() * 0.75) / Math.max(energy, 0.3);
+          }
+          const follow = 1 - (1 - Math.min(1, step * 2.5)) ** (dt / step);
+          state.current += (state.target - state.current) * follow;
+          const breath =
+            amp * 0.35 * Math.sin(elapsed * breathFreqs[i] * Math.PI * 2 + breathPhases[i]);
+          angles[i] = state.current + breath;
         }
-        state.current += (state.target - state.current) * Math.min(1, dt * 2.5);
-        const breath = amp * 0.35 * Math.sin(elapsed * breathHz[i] * Math.PI * 2 + breathPhase[i]);
-        pose[name] = state.current + breath;
-      });
-
-      if (bounceStart && now - bounceStart > bounceDuration) bounceStart = 0;
-      if (!quiet && !bounceStart && now >= nextBounce) {
-        bounceStart = now;
-        bounceDuration = 0.15 + Math.random() * 0.15;
-        bounceAmp = 2.4 * energy * (0.7 + Math.random() * 0.6) * (Math.random() < 0.5 ? -1 : 1);
-        nextBounce = now + (1.5 + Math.random() * 3) / Math.max(energy, 0.3);
+        if (bounceStart !== null && now - bounceStart > bounceDuration) bounceStart = null;
+        if (bounceStart === null && now >= nextBounce) {
+          bounceStart = now;
+          bounceDuration = 0.15 + Math.random() * 0.15;
+          bounceAmplitude = 3 * energy * (0.7 + Math.random() * 0.6) * (Math.random() < 0.5 ? -1 : 1);
+          nextBounce = now + (1.5 + Math.random() * 3) / Math.max(energy, 0.3);
+        }
+        if (bounceStart !== null) {
+          const t = now - bounceStart;
+          if (t <= bounceDuration) {
+            angles[2] += bounceAmplitude * 0.6 * Math.sin((Math.PI * t) / bounceDuration);
+          }
+        }
       }
-      if (bounceStart) {
-        const t = Math.min(1, (now - bounceStart) / bounceDuration);
-        const pulse = Math.sin(Math.PI * t);
-        pose.y += bounceAmp * pulse;
-        pose.z += bounceAmp * 0.6 * pulse;
-        if (t >= 1) bounceStart = 0;
-      }
-
-      // A late frame used to drop the nod, or a new sway target used to reverse
-      // in one step. Keep the rhythm, but don't let the body jump.
-      const maxRate = 90;
-      names.forEach((name) => {
-        const delta = pose[name] - shown[name];
-        const limit = maxRate * Math.max(dt, 1 / 120);
-        shown[name] += Math.max(-limit, Math.min(limit, delta));
-        pose[name] = shown[name];
-      });
 
       figureRef.current?.setFrame?.("bust");
       figureRef.current?.setPose({
-        x: pose.x,
-        y: pose.y,
-        z: pose.z,
+        x: angles[0],
+        y: angles[1],
+        z: angles[2],
         blink: !quiet && elapsed % 4.8 < 0.12,
         mouth,
       });
@@ -188,7 +152,6 @@ export function Soundtrack() {
       audio.removeEventListener("loadedmetadata", syncDuration);
       audio.removeEventListener("durationchange", syncDuration);
       audio.pause();
-      void contextRef.current?.close();
     };
   }, []);
 
@@ -197,20 +160,6 @@ export function Soundtrack() {
   async function toggle() {
     const audio = audioRef.current;
     if (!audio) return;
-    if (!contextRef.current) {
-      const context = new AudioContext();
-      const source = context.createMediaElementSource(audio);
-      source.connect(context.destination);
-
-      const melody = context.createAnalyser();
-      melody.fftSize = 2048;
-      melody.smoothingTimeConstant = 0.72;
-      source.connect(melody);
-
-      contextRef.current = context;
-      melodyRef.current = melody;
-    }
-    await contextRef.current.resume();
     if (audio.paused) {
       try {
         await audio.play();
