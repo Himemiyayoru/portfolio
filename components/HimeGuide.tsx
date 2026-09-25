@@ -149,6 +149,12 @@ export function HimeGuide() {
     let speech = 0;
 
     function show(id: LineId) {
+      if (!audioUnlocked) {
+        pendingAudio = id;
+        setCaption("");
+        setHint(true);
+        return;
+      }
       window.clearTimeout(visualTimer);
       speech += 1;
       const mine = speech;
@@ -167,12 +173,6 @@ export function HimeGuide() {
       lastId = id;
       setEmotion(line.emotion);
       setHint(false);
-      if (line.audio && !audioUnlocked) {
-        setHint(true);
-        pendingAudio = id;
-        setCaption(sentencesOf(line.text)[0] ?? line.text);
-        return;
-      }
       pendingAudio = null;
       if (line.audio) {
         queue.push(id);
@@ -205,6 +205,7 @@ export function HimeGuide() {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const zone = target.closest("[data-hime-zone]")?.getAttribute("data-hime-zone");
+      if (!audioUnlocked) return;
       if (!zone || !isLineId(zone) || zone === "arrival") return;
       if (zone === activeWork) return;
       activeWork = zone;
@@ -220,12 +221,13 @@ export function HimeGuide() {
     }
 
     function onPointerDown(event?: Event) {
+      const first = !audioUnlocked;
       audioUnlocked = true;
       setUnlocked(true);
       setHint(false);
       void audioCtx?.resume().then(() => attachAnalyser());
       const target = event?.target;
-      if (target instanceof Element && target.closest("[data-hime-replay]")) {
+      if (!first && target instanceof Element && target.closest("[data-hime-replay]")) {
         pendingAudio = null;
         return;
       }
@@ -262,8 +264,7 @@ export function HimeGuide() {
     window.addEventListener("keydown", onKey);
 
     document.documentElement.dataset.hime = "dock";
-    audioUnlocked = true;
-    setUnlocked(true);
+    setHint(true);
     showRef.current = (id) => {
       if (id === activeWork) return;
       activeWork = id;
@@ -368,10 +369,9 @@ export function HimeGuide() {
 
   return (
     <aside className="hime" data-phase={phase} data-unlocked={unlocked ? "true" : "false"}>
-      {phase === "dock" && caption ? (
+      {phase === "dock" && (!unlocked || caption) ? (
         <div className="hime-caption" aria-live="polite">
-          <p>{caption}</p>
-          {hint ? <p className="hime-hint">Tap once and I&apos;ll talk.</p> : null}
+          <p>{unlocked ? caption : "Tap screen and I'll talk."}</p>
         </div>
       ) : null}
         <button type="button" className="hime-button" data-hime-replay="" aria-label="Hime">
