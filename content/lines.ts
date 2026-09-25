@@ -28,7 +28,7 @@ export type Line = {
 export const lines: Record<LineId, Line> = {
   arrival: {
     id: "arrival",
-    text: "I'm Hime. The work is on the table. Move closer if you want the short version.",
+    text: "I am the site guide. Move your mouse onto any work, and I will introduce it.",
     emotion: "neutral",
     audio: "/hime/lines/arrival.mp3",
   },
