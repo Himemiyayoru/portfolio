@@ -87,7 +87,7 @@ export const works: Work[] = [
     year: "2026",
     role: "Character systems",
     lede: "A desktop companion written as a younger sister. A trained voice, a dated memory, and a face wired to every expression the model publishes.",
-    plate: "A trained voice, a dated memory, and the model's own expressions.",
+    plate: "The cutest AI high school girl of the 21st century.",
     tone: "night",
     frame: "wide",
     images: [],

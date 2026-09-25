@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Spine } from "@/components/Spine";
-import { HimeMark } from "@/components/HimeMark";
+import { HimePlate } from "@/components/HimePlate";
 import { works } from "@/content/works";
 
 export function Plates() {
@@ -36,7 +36,7 @@ export function Plates() {
                     style={{ objectFit: "cover", objectPosition: work.frame === "phone" ? "center 42%" : "center" }}
                   />
                 ) : work.slug === "hime" ? (
-                  <HimeMark />
+                  <HimePlate />
                 ) : (
                   <Spine compact />
                 )}

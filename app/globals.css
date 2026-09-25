@@ -206,6 +206,15 @@ h1, h2, .statement, .lede {
 }
 
 .plate-art img { object-fit: cover; }
+.plate-hime {
+  position: absolute;
+  inset: 0;
+}
+.plate-hime .hime-portrait {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
 
 .plate::after {
   content: "";
