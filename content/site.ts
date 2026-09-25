@@ -14,7 +14,7 @@ export const site = {
    * Cubism model served from public/. Empty falls back to the drawn stand-in.
    * Driven parameters: ParamAngleX/Y/Z, ParamMouthOpenY, ParamEyeLOpen, ParamEyeROpen.
    */
-  live2dModel: "/hime/live2d/tansuan/tansuan.model3.json",
+  live2dModel: "",
 };
 
 export function creditName() {
