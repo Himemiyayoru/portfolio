@@ -33,6 +33,15 @@ export function HimeGuide() {
     let visualTimer = 0;
     let frame = 0;
 
+    function attachAnalyser() {
+      if (!audio || !audioCtx || analyser || audioCtx.state !== "running") return;
+      const source = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+    }
+
     function level() {
       if (!analyser || !audio || audio.paused) return 0;
       analyser.getByteTimeDomainData(samples);
@@ -82,16 +91,8 @@ export function HimeGuide() {
         audio = new Audio();
         audio.preload = "auto";
       }
-      if (!audioCtx) {
-        const Ctx = window.AudioContext;
-        audioCtx = new Ctx();
-        const source = audioCtx.createMediaElementSource(audio);
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-      }
-      void audioCtx.resume();
+      if (!audioCtx) audioCtx = new AudioContext();
+      void audioCtx.resume().then(() => attachAnalyser());
       const mine = speech;
       const sentences = sentencesOf(line.text);
       const total = sentences.reduce((sum, sentence) => sum + sentence.length, 0) || 1;
@@ -120,11 +121,17 @@ export function HimeGuide() {
       audio.src = line.audio;
       audio.onloadedmetadata = () => {
         if (mine !== speech || !Number.isFinite(audio?.duration)) return;
-        follow((audio?.duration ?? 0) * 1000);
+        const durationMs = (audio?.duration ?? 0) * 1000;
+        follow(durationMs);
+        if (!analyser) talkingUntil = performance.now() + durationMs;
       };
       void audio.play().catch(() => {
         if (mine !== speech) return;
         playing = false;
+        audioUnlocked = false;
+        setUnlocked(false);
+        setHint(true);
+        pendingAudio = lastId;
       });
     }
 
@@ -216,6 +223,7 @@ export function HimeGuide() {
       audioUnlocked = true;
       setUnlocked(true);
       setHint(false);
+      void audioCtx?.resume().then(() => attachAnalyser());
       const target = event?.target;
       if (target instanceof Element && target.closest("[data-hime-replay]")) {
         pendingAudio = null;
@@ -254,6 +262,8 @@ export function HimeGuide() {
     window.addEventListener("keydown", onKey);
 
     document.documentElement.dataset.hime = "dock";
+    audioUnlocked = true;
+    setUnlocked(true);
     showRef.current = (id) => {
       if (id === activeWork) return;
       activeWork = id;
