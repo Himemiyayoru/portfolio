@@ -248,6 +248,14 @@ export function HimeGuide() {
           return;
         }
       }
+      const href =
+        target instanceof Element ? target.closest("a")?.getAttribute("href") : null;
+      if (href === "/about") {
+        pendingAudio = null;
+        activeWork = "about";
+        show("about");
+        return;
+      }
       const waiting = pendingAudio;
       pendingAudio = null;
       if (waiting) {
@@ -369,6 +377,7 @@ export function HimeGuide() {
     if (pathname === "/work/crimson-moon") showRef.current("crimson-moon");
     if (pathname === "/work/bobs-special-blend") showRef.current("bobs-special-blend");
     if (pathname === "/work/hime") showRef.current("hime");
+    if (pathname === "/about") showRef.current("about");
   }, [pathname]);
 
   return (

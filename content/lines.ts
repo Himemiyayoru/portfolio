@@ -94,7 +94,7 @@ export const lines: Record<LineId, Line> = {
   },
   about: {
     id: "about",
-    text: "RPI, then art, then Carnegie Mellon. Same person. Different materials.",
+    text: "This is my brother's personal introduction. A dual background in art and computer science makes my brother an independent developer, rich in design and creativity.",
     emotion: "happy",
     audio: "/hime/lines/about.mp3",
   },
