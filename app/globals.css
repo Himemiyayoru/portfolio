@@ -116,6 +116,7 @@ h1, h2, .statement, .lede {
   text-transform: uppercase;
   color: var(--gold);
 }
+.mast-name small { text-transform: none; letter-spacing: 0.04em; }
 
 .mast-role { margin: 0; flex: 1; }
 

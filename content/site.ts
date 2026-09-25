@@ -2,9 +2,9 @@ export const site = {
   name: "Yoru",
   studio: "Himemiya Yoru",
   /** Legal name, shown beside Yoru once you set it. */
-  legalName: "",
+  legalName: "Jiahao Li",
   role: "Creative technologist",
-  line: "Yoru builds interactive systems where code, image, and sound share one point of view.",
+  line: "Yoru is devoted to weaving AI into daily life, and to making the world more luminous through it.",
   /** Public address. Leave empty until you want it on the page. */
   email: "",
   /** For example "/resume.pdf" after the file is in public/. */

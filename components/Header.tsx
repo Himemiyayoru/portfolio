@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { creditName, site } from "@/content/site";
+import { site } from "@/content/site";
 
 export function Header() {
-  const name = creditName();
   return (
     <header className="mast">
       <Link href="/" className="mast-name">
-        <span>{name}</span>
-        <small>{site.studio}</small>
+        <span>Yoru Himemiya</span>
+        <small>{site.legalName}</small>
       </Link>
       <p className="mast-role">{site.role}</p>
       <nav>
