@@ -98,7 +98,7 @@ h1, h2, .statement, .lede {
 
 .mast-name span {
   font-family: var(--serif);
-  font-size: 1.35rem;
+  font-size: 2.05rem;
 }
 
 .mast-name small,
@@ -116,9 +116,9 @@ h1, h2, .statement, .lede {
   text-transform: uppercase;
   color: var(--gold);
 }
-.mast-name small { text-transform: none; letter-spacing: 0.04em; }
+.mast-name small { text-transform: none; letter-spacing: 0.04em; font-size: 0.95rem; }
 
-.mast-role { margin: 0; flex: 1; }
+.mast-role { margin: 0; flex: 1; font-size: 1.05rem; }
 
 .mast nav {
   display: flex;
@@ -128,7 +128,7 @@ h1, h2, .statement, .lede {
 .mast nav a {
   text-decoration: none;
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }

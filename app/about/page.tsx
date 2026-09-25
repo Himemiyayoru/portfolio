@@ -18,42 +18,42 @@ export default function AboutPage() {
         The work joins artificial intelligence with art, and brings that intelligence into daily life.
         Rensselaer taught computing and AI. Oregon was an education in art. Carnegie Mellon is the
         study of data, kept with care, and of models, trained with care. Development is independent,
-        with AI as the instrument, and an idea is carried through until it is real.
+        with AI as the instrument, and an idea is carried through until it is real
       </p>
       <ul className="schools">
         <li>
           <strong>Rensselaer Polytechnic Institute</strong>
           <span>2021–2022</span>
-          <p>Computing and artificial intelligence.</p>
+          <p>Coursework, Computer Science, minor in Cognitive Science</p>
         </li>
         <li>
           <strong>University of Oregon</strong>
           <span>2022–2024</span>
-          <p>Art.</p>
+          <p>Bachelor, Art</p>
         </li>
         <li>
           <strong>Carnegie Mellon University</strong>
           <span>2026–2026</span>
-          <p>Data preparation and model training.</p>
+          <p>Certificate, Machine Learning and Data Science Foundation</p>
         </li>
       </ul>
       <h2>Practice</h2>
       <ul className="schools">
         <li>
           <strong>Image and motion</strong>
-          <p>Midjourney, Stable Diffusion, ComfyUI, Runway.</p>
+          <p>Midjourney Stable Diffusion ComfyUI Runway</p>
         </li>
         <li>
           <strong>Sound</strong>
-          <p>Suno.</p>
+          <p>Suno</p>
         </li>
         <li>
           <strong>Adobe</strong>
-          <p>Photoshop, Illustrator, After Effects, Premiere.</p>
+          <p>Photoshop Illustrator After Effects Premiere</p>
         </li>
         <li>
           <strong>Build</strong>
-          <p>Cursor. Python.</p>
+          <p>Cursor Python</p>
         </li>
       </ul>
       <h2>Contact</h2>

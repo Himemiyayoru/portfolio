@@ -13,11 +13,7 @@ export function Header() {
         <Link href="/about" data-hime-zone="about">
           About
         </Link>
-        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : null}
         {site.resumeHref ? <a href={site.resumeHref}>Résumé</a> : null}
-        <a href={site.github} target="_blank" rel="noreferrer">
-          GitHub
-        </a>
       </nav>
     </header>
   );
