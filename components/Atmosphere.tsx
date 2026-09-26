@@ -17,6 +17,7 @@ export function Atmosphere() {
   useEffect(() => {
     const canvas = trail.current;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const phone = window.matchMedia("(max-width: 800px), (hover: none) and (pointer: coarse)");
     let frame = 0;
     const marks: Mark[] = [];
     const context = canvas?.getContext("2d") ?? null;
@@ -47,6 +48,10 @@ export function Atmosphere() {
       frame = requestAnimationFrame(draw);
       if (!context) return;
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      if (phone.matches) {
+        marks.length = 0;
+        return;
+      }
       trim(now);
       if (marks.length < 2) return;
       context.lineCap = "round";
@@ -63,7 +68,7 @@ export function Atmosphere() {
     }
 
     function onMove(event: PointerEvent) {
-      if (reduce) return;
+      if (reduce || phone.matches || event.pointerType !== "mouse") return;
       const previous = marks[marks.length - 1];
       if (previous) {
         const moved = Math.hypot(event.clientX - previous.x, event.clientY - previous.y);

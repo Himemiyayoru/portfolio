@@ -988,10 +988,7 @@ h1, h2, .statement, .lede {
     width: 5.5rem;
   }
 
-  .hime-button {
-    border-radius: 1.4rem;
-    background: radial-gradient(ellipse at 50% 40%, rgba(18, 14, 20, 0.96) 0 42%, rgba(18, 14, 20, 0.72) 58%, transparent 74%);
-  }
+  .trail { display: none; }
 
   .hime-mute {
     top: -0.15rem;
@@ -1132,6 +1129,10 @@ h1, h2, .statement, .lede {
 @keyframes gold-line {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .trail { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
