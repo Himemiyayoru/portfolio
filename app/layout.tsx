@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Header } from "@/components/Header";
@@ -20,6 +20,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: {
