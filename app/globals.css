@@ -286,6 +286,39 @@ h1, h2, .statement, .lede {
   outline-offset: 4px;
 }
 
+.hime-mute {
+  position: absolute;
+  z-index: 4;
+  top: 0.15rem;
+  right: 0.15rem;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: rgba(18, 14, 20, 0.92);
+  color: var(--gold);
+  cursor: var(--cursor);
+}
+
+.hime-mute svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  display: block;
+  margin: 0 auto;
+  fill: currentColor;
+}
+
+.hime-mute:hover,
+.hime-mute[aria-pressed="true"] {
+  background: rgba(212, 180, 131, 0.18);
+}
+
+.hime-mute:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 3px;
+}
+
 .hime-svg { display: block; width: 100%; height: auto; }
 
 .hime-portrait {
@@ -958,6 +991,13 @@ h1, h2, .statement, .lede {
   .hime-button {
     border-radius: 1.4rem;
     background: radial-gradient(ellipse at 50% 40%, rgba(18, 14, 20, 0.96) 0 42%, rgba(18, 14, 20, 0.72) 58%, transparent 74%);
+  }
+
+  .hime-mute {
+    top: -0.15rem;
+    right: -0.15rem;
+    width: 1.7rem;
+    height: 1.7rem;
   }
 
   .hime-caption {

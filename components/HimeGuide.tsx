@@ -6,6 +6,22 @@ import { isLineId, lines, type Emotion, type LineId } from "@/content/lines";
 import type { HimeHandle } from "@/components/HimeFigure";
 import { HimePortrait } from "@/components/HimeLive2D";
 
+function VoiceIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9v6h3.5L13 20V4L7.5 9H4zm11.2 3a3.2 3.2 0 0 0-1.7-2.8v5.6A3.2 3.2 0 0 0 15.2 12z" />
+    </svg>
+  );
+}
+
+function MutedIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9v6h3.5L13 20V4L7.5 9H4zm14.7 3 2.3-2.3-1.4-1.4L17.3 10.6 15 8.3l-1.4 1.4 2.3 2.3-2.3 2.3 1.4 1.4 2.3-2.3 2.3 2.3 1.4-1.4z" />
+    </svg>
+  );
+}
+
 export function HimeGuide() {
   const figureRef = useRef<HimeHandle>(null);
   const [phase] = useState<"dock">("dock");
@@ -15,6 +31,9 @@ export function HimeGuide() {
   const emotionRef = useRef(emotion);
   emotionRef.current = emotion;
   const [unlocked, setUnlocked] = useState(false);
+  const [hush, setHush] = useState(false);
+  const hushRef = useRef(false);
+  const applyHushRef = useRef<(on: boolean) => void>(() => {});
   const pathname = usePathname();
   const showRef = useRef<(id: LineId) => void>(() => {});
 
@@ -60,82 +79,6 @@ export function HimeGuide() {
       return sentences && sentences.length > 0 ? sentences : [text.trim()];
     }
 
-    function pump() {
-      if (playing) return;
-      const id = queue.shift();
-      if (!id) return;
-      const line = lines[id];
-      if (!line.audio) {
-        playing = true;
-        const sentences = sentencesOf(line.text);
-        let index = 0;
-        const say = () => {
-          const sentence = sentences[index];
-          setCaption(sentence);
-          const ms = Math.min(3200, 900 + sentence.length * 42);
-          talkingUntil = performance.now() + ms;
-          visualTimer = window.setTimeout(() => {
-            index += 1;
-            if (index < sentences.length) {
-              say();
-              return;
-            }
-            playing = false;
-            talkingUntil = 0;
-            pump();
-          }, ms);
-        };
-        say();
-        return;
-      }
-      if (!audio) {
-        audio = new Audio();
-        audio.preload = "auto";
-      }
-      if (!audioCtx) audioCtx = new AudioContext();
-      void audioCtx.resume().then(() => attachAnalyser());
-      const mine = speech;
-      const sentences = sentencesOf(line.text);
-      const total = sentences.reduce((sum, sentence) => sum + sentence.length, 0) || 1;
-      const follow = (durationMs: number) => {
-        if (mine !== speech) return;
-        window.clearTimeout(visualTimer);
-        let index = 0;
-        const step = () => {
-          if (mine !== speech) return;
-          setCaption(sentences[index]);
-          const wait = (sentences[index].length / total) * durationMs;
-          index += 1;
-          if (index >= sentences.length) return;
-          visualTimer = window.setTimeout(step, wait);
-        };
-        step();
-      };
-      audio.onended = () => {
-        if (mine !== speech) return;
-        playing = false;
-        talkingUntil = 0;
-      };
-      playing = true;
-      talkingUntil = 0;
-      setCaption(sentences[0] ?? line.text);
-      audio.src = line.audio;
-      audio.onloadedmetadata = () => {
-        if (mine !== speech || !Number.isFinite(audio?.duration)) return;
-        const durationMs = (audio?.duration ?? 0) * 1000;
-        follow(durationMs);
-        if (!analyser) talkingUntil = performance.now() + durationMs;
-      };
-      void audio.play().catch(() => {
-        if (mine !== speech) return;
-        playing = false;
-        audioUnlocked = false;
-        setUnlocked(false);
-        setHint(true);
-        pendingAudio = lastId;
-      });
-    }
-
     const workLines = new Set<LineId>([
       "crimson-moon",
       "crimson-moon-card",
@@ -148,6 +91,198 @@ export function HimeGuide() {
     ]);
     let activeWork: LineId | null = null;
     let speech = 0;
+    let introOpen = false;
+    let introHeld = false;
+    let usingAudio = false;
+    let currentLine: LineId | null = null;
+    let captionCursor = 0;
+
+    function isIntro(id: LineId) {
+      return id === "arrival" || workLines.has(id);
+    }
+
+    function ensureAudio() {
+      if (!audio) {
+        audio = new Audio();
+        audio.preload = "auto";
+        audio.dataset.himeVoice = "1";
+      }
+      if (!audioCtx) audioCtx = new AudioContext();
+      void audioCtx.resume().then(() => attachAnalyser());
+    }
+
+    function mediaBusy() {
+      const nodes = document.querySelectorAll("audio, video");
+      for (const node of nodes) {
+        if (!(node instanceof HTMLMediaElement) || node === audio) continue;
+        if (node.dataset.himeVoice === "1") continue;
+        if (node.paused || node.ended || node.muted || node.volume === 0) continue;
+        return true;
+      }
+      return false;
+    }
+
+    function voiceAllowed() {
+      return !hushRef.current && !mediaBusy() && !introHeld;
+    }
+
+    function haltAudio() {
+      if (!audio) return;
+      audio.onended = null;
+      audio.muted = true;
+      audio.pause();
+      try {
+        audio.currentTime = 0;
+      } catch {
+        /* metadata not ready yet */
+      }
+    }
+
+    function releaseIfReady() {
+      if (hushRef.current || mediaBusy() || introOpen) return;
+      introHeld = false;
+      if (audio) audio.muted = false;
+    }
+
+    function finishLine(id: LineId, mine: number) {
+      if (mine !== speech) return;
+      playing = false;
+      talkingUntil = 0;
+      usingAudio = false;
+      if (isIntro(id)) {
+        introOpen = false;
+        introHeld = mediaBusy() || hushRef.current;
+      }
+      releaseIfReady();
+      pump();
+    }
+
+    function runText(id: LineId, mine: number, from: number) {
+      const line = lines[id];
+      const sentences = sentencesOf(line.text);
+      if (isIntro(id)) {
+        introOpen = true;
+        if (!voiceAllowed()) introHeld = true;
+      }
+      usingAudio = false;
+      playing = true;
+      const say = () => {
+        if (mine !== speech) return;
+        if (captionCursor >= sentences.length) {
+          finishLine(id, mine);
+          return;
+        }
+        setCaption(sentences[captionCursor]);
+        const ms = Math.min(3200, 900 + sentences[captionCursor].length * 42);
+        talkingUntil = performance.now() + ms;
+        captionCursor += 1;
+        visualTimer = window.setTimeout(say, ms);
+      };
+      captionCursor = from;
+      if (from > 0 && from <= sentences.length) {
+        const shown = sentences[Math.min(from, sentences.length) - 1] ?? "";
+        const ms = Math.min(3200, 900 + shown.length * 42);
+        visualTimer = window.setTimeout(say, ms);
+        return;
+      }
+      say();
+    }
+
+    function runAudio(id: LineId, mine: number) {
+      const line = lines[id];
+      if (!line.audio) {
+        runText(id, mine, 0);
+        return;
+      }
+      ensureAudio();
+      if (!audio) return;
+      const sentences = sentencesOf(line.text);
+      const total = sentences.reduce((sum, sentence) => sum + sentence.length, 0) || 1;
+      if (isIntro(id)) introOpen = true;
+      usingAudio = true;
+      playing = true;
+      talkingUntil = 0;
+      audio.muted = false;
+      audio.onended = () => {
+        if (mine !== speech || !usingAudio) return;
+        finishLine(id, mine);
+      };
+      const follow = (durationMs: number) => {
+        if (mine !== speech || !usingAudio) return;
+        window.clearTimeout(visualTimer);
+        let index = 0;
+        const step = () => {
+          if (mine !== speech || !usingAudio) return;
+          setCaption(sentences[index]);
+          captionCursor = index + 1;
+          const wait = (sentences[index].length / total) * durationMs;
+          index += 1;
+          if (index >= sentences.length) return;
+          visualTimer = window.setTimeout(step, wait);
+        };
+        step();
+      };
+      setCaption(sentences[0] ?? line.text);
+      captionCursor = 1;
+      audio.src = line.audio;
+      audio.onloadedmetadata = () => {
+        if (mine !== speech || !usingAudio || !Number.isFinite(audio?.duration)) return;
+        const durationMs = (audio?.duration ?? 0) * 1000;
+        follow(durationMs);
+        if (!analyser) talkingUntil = performance.now() + durationMs;
+      };
+      void audio.play().catch((error: unknown) => {
+        if (mine !== speech || !usingAudio) return;
+        const name = error instanceof DOMException ? error.name : "";
+        if (name === "AbortError") return;
+        playing = false;
+        usingAudio = false;
+        audioUnlocked = false;
+        setUnlocked(false);
+        setHint(true);
+        pendingAudio = lastId;
+      });
+    }
+
+    function cutVoiceToText() {
+      if (introOpen) introHeld = true;
+      if (!usingAudio) {
+        haltAudio();
+        return;
+      }
+      const line = currentLine;
+      const mine = speech;
+      const from = captionCursor;
+      usingAudio = false;
+      haltAudio();
+      window.clearTimeout(visualTimer);
+      if (line) runText(line, mine, from);
+    }
+
+    function silenceNow() {
+      cutVoiceToText();
+    }
+
+    function onForeignMedia(event: Event) {
+      const target = event.target;
+      if (!(target instanceof HTMLMediaElement)) return;
+      if (target === audio || target.dataset.himeVoice === "1") return;
+      if (mediaBusy()) {
+        silenceNow();
+        return;
+      }
+      releaseIfReady();
+    }
+
+    function pump() {
+      if (playing) return;
+      const id = queue.shift();
+      if (!id) return;
+      currentLine = id;
+      const line = lines[id];
+      if (line.audio && voiceAllowed()) runAudio(id, speech);
+      else runText(id, speech, 0);
+    }
 
     function show(id: LineId) {
       if (!audioUnlocked) {
@@ -158,48 +293,20 @@ export function HimeGuide() {
       }
       window.clearTimeout(visualTimer);
       speech += 1;
-      const mine = speech;
       playing = false;
       talkingUntil = 0;
+      usingAudio = false;
       queue.length = 0;
-      if (audio) {
-        audio.pause();
-        try {
-          audio.currentTime = 0;
-        } catch {
-          /* metadata not ready yet */
-        }
-      }
+      haltAudio();
       const line = lines[id];
       lastId = id;
+      currentLine = id;
+      captionCursor = 0;
       setEmotion(line.emotion);
       setHint(false);
       pendingAudio = null;
-      if (line.audio) {
-        queue.push(id);
-        pump();
-        return;
-      }
-      playing = true;
-      const sentences = sentencesOf(line.text);
-      let index = 0;
-      const say = () => {
-        if (mine !== speech) return;
-        setCaption(sentences[index]);
-        const ms = Math.min(3200, 900 + sentences[index].length * 42);
-        talkingUntil = performance.now() + ms;
-        visualTimer = window.setTimeout(() => {
-          if (mine !== speech) return;
-          index += 1;
-          if (index < sentences.length) {
-            say();
-            return;
-          }
-          playing = false;
-          talkingUntil = 0;
-        }, ms);
-      };
-      say();
+      queue.push(id);
+      pump();
     }
 
     function onZone(event: Event) {
@@ -274,6 +381,16 @@ export function HimeGuide() {
     document.addEventListener("focusin", onZone);
     window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKey);
+
+    applyHushRef.current = (on) => {
+      if (on) cutVoiceToText();
+      else releaseIfReady();
+    };
+    document.addEventListener("play", onForeignMedia, true);
+    document.addEventListener("playing", onForeignMedia, true);
+    document.addEventListener("pause", onForeignMedia, true);
+    document.addEventListener("ended", onForeignMedia, true);
+    document.addEventListener("volumechange", onForeignMedia, true);
 
     document.documentElement.dataset.hime = "dock";
     setHint(true);
@@ -368,6 +485,12 @@ export function HimeGuide() {
       document.removeEventListener("focusin", onZone);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("keydown", onKey);
+      document.removeEventListener("play", onForeignMedia, true);
+      document.removeEventListener("playing", onForeignMedia, true);
+      document.removeEventListener("pause", onForeignMedia, true);
+      document.removeEventListener("ended", onForeignMedia, true);
+      document.removeEventListener("volumechange", onForeignMedia, true);
+      applyHushRef.current = () => {};
       audio?.pause();
       void audioCtx?.close();
     };
@@ -387,7 +510,23 @@ export function HimeGuide() {
           <p>{unlocked ? caption : "Tap screen and I'll talk."}</p>
         </div>
       ) : null}
-        <button type="button" className="hime-button" data-hime-replay="" aria-label="Hime">
+      <button
+        type="button"
+        className="hime-mute"
+        aria-label={hush ? "Unmute Hime" : "Mute Hime"}
+        aria-pressed={hush}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const next = !hushRef.current;
+          hushRef.current = next;
+          setHush(next);
+          applyHushRef.current(next);
+        }}
+      >
+        {hush ? <MutedIcon /> : <VoiceIcon />}
+      </button>
+      <button type="button" className="hime-button" data-hime-replay="" aria-label="Hime">
         <HimePortrait ref={figureRef} emotion={emotion} />
         <span>Hime</span>
       </button>
