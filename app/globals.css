@@ -650,7 +650,8 @@ h1, h2, .statement, .lede {
 }
 .prose p { color: var(--ink); }
 .prose a { color: var(--gold); }
-.case[data-tone="night"] .prose strong {
+.case[data-tone="night"] .prose strong,
+.case[data-tone="crimson"] .prose strong {
   color: var(--gold);
   font-weight: 560;
 }

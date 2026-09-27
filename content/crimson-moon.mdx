@@ -1,54 +1,107 @@
-import { Maidens } from "@/components/Maidens";
 import { Soundtrack } from "@/components/Soundtrack";
 
-## A full table, without a crowd
+Tech Stack: React 19, Vite, Electron, Cursor. The complete source code is open and available on [GitHub](https://github.com/Himemiyayoru/crimson-moon).
 
-Werewolf usually needs a room of people. Crimson Moon seats one human and eight star maidens, and still plays a full deduction game. Two of those seats are reversed witches. You speak, you vote, and you can be wrong. You do not have to perform for a group.
+## The Design Intent: The Missing Puzzle Piece
 
-Nine seats. The human is one. The other eight are drawn from the village for that match. Two seats are reversed witches. Card numbers are unique, so two living players cannot truthfully hold the same Major Arcana. Civilians win when every reversed witch is gone. Witches win when they can no longer be voted out. The rules host is `Game` in `src/engine/game.ts`. The client is React 19 and Vite, in Chinese or English, in the browser or as a Windows Electron build. I built that client in Cursor. The source is on [GitHub](https://github.com/Himemiyayoru/crimson-moon).
+Social deduction games are inherently thrilling, but for those with social anxiety, they often carry an exhausting emotional cost. The pressure to perform, argue, or deceive in front of a crowd creates a high level of internal friction, keeping many from enjoying a genre they might otherwise love.
 
-## Two clocks
+Crimson Moon was built on the philosophy that AI is not just a functional gimmick, but a crucial puzzle piece capable of supporting humans and filling emotional voids. By replacing a room full of people with a reactive AI cast, the game removes the real-world social drain while preserving the psychological depth. It empowers players to safely explore experiences they might normally shy away from—allowing them to step out of their comfort zones, take risks, be accused, and execute bold plays without the anxiety of a human audience.
 
-You can play by clicking through each exchange, or you can let a real countdown run. Clicking through is the default, so a slow reader is not punished. The live clock is there when you want a tighter table.
+## 1. A Full Table, Without a Crowd
 
-`settings.realtime` starts off. While it is off, the phase clock does not run, and the player advances the exchange. Turning the live clock on starts the countdown, with a speed control in Options. Those settings stay in `localStorage`. An in-progress match can be saved and resumed.
+**Experience Design**
 
-## Cards with two faces
+Werewolf usually needs a room of people. Crimson Moon seats one human and eight star maidens, and still plays a full deduction game. You speak, you vote, and you can be wrong. Most importantly, you do not have to coordinate schedules to play a psychological thriller.
 
-Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match does not use the whole village. It deals a new set of maidens and a new set of powers, so the same card is not the same problem twice. When a power resolves, the card plays on the table.
+**Engineering Architecture**
 
-Ability text lives in `src/data/arcana.ts`. The numbers those abilities change live in `game.ts`. Editing the flavor text does not change the effect. Portrait notes in the Codex are for the player only. They do not feed the planner, and they do not change the win check. Public card moments are video clips in `assets/tarot/vfx`, played when the matching ability resolves. The stills sit beside them under `assets/tarot`.
+Nine seats exist at the table. The human is one, while the other eight are drawn from a pool of fifteen village maidens. Two seats are dealt reversed witches. Card numbers are strictly unique—meaning two living players cannot truthfully claim the same Major Arcana. Civilians win when every reversed witch is exiled. Witches win when the number of living civilians equals or falls below the living witches—at which point a voting majority is mathematically impossible—or when the village is wiped out. The rules host is a robust engine in `src/engine/game.ts`. The client is built in React 19 and Vite, fully localized in Chinese and English, playable in the browser or via a Windows Electron build.
 
-## One day
+## 2. The Symbolic Engine (An AI Brain Without the LLM)
 
-A day has an order, and information does not leak across it. Dawn and morning stay private. Tea is a small room. The trial is the only public argument. Then everyone votes without seeing the other hands. At night the witches choose a kill.
+**Experience Design**
 
-The phase order is Dawn, Morning, Tea party, Trial, Nightfall, Sabbath. Dawn is a hidden ability window. Deaths are not announced yet. Morning may place a Minor Arcana omen on the table. Tea-party lines stay with the people in that room, plus a Hermit who is watching. Trial is where claims, counter-claims, and ability intel are said out loud. Nightfall is a blind vote, then the exile is revealed. Sabbath is the living witches' kill, then the remaining night abilities. The planner in `src/engine/ai.ts` only lets a maiden speak from what her seat can know.
+In Crimson Moon, the language model is strictly a flavor engine, not a decision maker. The characters strictly decouple the "mind" from the "mouth"—they form suspicions, hold grudges, and make strategic choices through a hard-coded "brain." The game plays perfectly, maintaining its full tactical depth and rule integrity, even if you turn the language model entirely off.
 
-## What she says
+**Engineering Architecture**
 
-The maidens talk like people at the table, not like a rules printout. You can answer with a prepared line, write your own, or name someone and pull her into the conversation. If you do nothing, the person who was about to speak finishes her line. The game still plays if you never turn a language model on.
+The core decision-making is a heavily weighted scoring engine.
 
-`planSpeech` and `chooseAbilityTargets` decide what an AI means to say and which skill she fires. Trust and suspicion are private to each seat. A language model is optional and off by default. When it is on, `src/engine/llm.ts` only rewrites a finished plan. It does not choose targets, votes, or abilities. Local mode calls an OpenAI-compatible server, default `http://127.0.0.1:11434/v1` and `qwen2.5`, and waits up to 28 seconds. Cloud mode defaults to `https://api.openai.com/v1` and `gpt-4o`, and waits up to 14 seconds. If the request fails, the planned line stays. Naming a maiden in your own line raises her speech weight. Per-character memory logs are written for the match and cleared when you leave the table.
+**Trust Ledger:** Each seat maintains a strict `trust[a][b]` matrix (−50 to 50). Actions trigger hardcoded mathematical shifts. For example, if someone publicly claims you are Reversed but you know you are Upright, your trust in them plummets. If they publicly clear you as Upright, your trust surges as you naturally side with them.
 
-## The village
+**Speech Planner (`planSpeech`):** The engine evaluates logic before drawing from a weighted bag of intents (e.g., self-defense is 7–7.5, chatter is 1.4). Before the draw, three absolute rules apply: a true Priestess must report her morning investigation; a designated Witch can preemptively claim or counter-claim the Priestess; and if someone claims your exact card, you must counter-claim.
 
-Fifteen maidens live here. Eight of them sit down with you. The faces are a cast, not a menu of stats. You learn who is sharp, who dodges, and who watches, and that is separate from the card she was dealt.
+**Evidence & Suspicion:** Accusations require hard evidence. Without it, high-weight intents degrade into mere questions. Accusing the human player requires breaching a slightly wider threshold (+4 leeway). Verified Uprights, your verifying Priestess, and fellow witches never enter the suspicion pool.
 
-<Maidens />
+**Targeting (`chooseAbilityTargets`):** The Upright Empress resurrects her most trusted dead player, but strictly abandons the action if trust is ≤ 0. The Witch targets based on a calculated threat score: current suspicion, plus the target's claimed role weight (e.g., Priestess 30, World 26), plus their speech frequency multiplied by 1.5.
 
-Setup draws the seated maidens from the girl pool and deals upright or reversed Major Arcana onto those seats. The Codex lists every ability in both languages. Player-facing copy is in `src/engine/messages.ts` and `src/ui/i18n.tsx`. Headless scripts can simulate a match or print one transcript without opening the client.
+## 3. LLM as a Flavor Engine
 
-## Look, motion, and the score
+**Experience Design**
 
-The table should feel like a place. Cards are illustrated. Ordinary play uses the instrumental. The full song, with words, arrives at the climax. The words are mine. Music and effects have their own volume, so the table can be quiet without going mute.
+The maidens talk like real people at a table. You can answer with a prepared line, write your own, or name someone to pull them into the conversation. When the language model is engaged, it doesn't decide what the character does—it only determines how they express the engine's decision.
 
-Card stills and the moving card clips are runtime assets. Vite serves them with range requests, so a long clip can start before the file finishes. Optional Python and Pillow scripts in `scripts/` can rebuild the stills. The score was made in Suno from lyrics I wrote. Master, music, and effects are separate sliders in Options. I built the client in Cursor.
+**Engineering Architecture**
 
-## Judgment Dusk, on this page
+**Strict Boundary Calls:** The LLM (`src/engine/llm.ts`) only rewrites a finished plan. It never chooses targets, votes, or abilities.
 
-This page plays the song. The guide in the corner sways while it plays. She is not locked to the beat. She idles the way she does on the desktop.
+**Lean Context Window:** The prompt is surgically precise. It only receives the current task, character name, vocal quirks, the day, phase, audience, survivor list, claimed cards, investigation results, the last 6 audible lines, and the engine's pre-calculated reasoning. Private logs are explicitly excluded. (Temperature 0.95, max 280 tokens).
+
+**Validation & Fallback:** The output is aggressively validated. If the LLM drops the intended target, fails to report "Upright" or "Reversed," hallucinates the Priestess role onto the investigated target, or times out (28s local qwen2.5, 14s cloud gpt-4o), the generation is immediately discarded. The UI safely falls back to the engine's raw text.
+
+## 4. Phase Isolation & Information Architecture
+
+**Experience Design**
+
+A day in Crimson Moon has a strict order. The Tea Party is a small, private gathering where secrets are shared, while the Trial is the only place for public accusations. This structure creates dramatic irony: you might hear a lie at the public Trial that contradicts what you heard in the private Tea Party.
+
+**Engineering Architecture**
+
+The engine strictly encapsulates game state into six phases: Dawn, Morning, Tea Party, Trial, Nightfall, and Sabbath. Information isolation is achieved cleanly through input scoping rather than complex obfuscation. The AI planner filters inputs via an observer list (`knownActs`). A maiden cannot speak of events outside her room simply because those events are never passed into her input context in the first place.
+
+## 5. Pacing & The Two Clocks
+
+**Experience Design**
+
+Games should respect the player's cognitive load. By default, Crimson Moon does not force a timer; you advance the exchange by clicking, ensuring that slow readers are not punished by walls of generated text. However, when you want the pressure of a tighter, high-stakes table, you can enable a live countdown clock.
+
+**Engineering Architecture**
+
+The game engine supports dual temporal states. When `settings.realtime` is off, the phase clock halts and awaits manual state progression. When toggled on, the engine runs a live tick-based countdown, governed by a global speed control multiplier in Options. State serialization ensures that an in-progress match—regardless of which clock mode is active—can be safely saved to `localStorage` and resumed later without desyncing the game loop.
+
+## 6. Cards With Two Faces
+
+**Experience Design**
+
+Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match deals a new set of maidens and a new set of powers each time. The Gothic atmosphere stems directly from the mechanics: your fate is tied to a physical card that can flip, rather than an invisible "wolf" label arbitrarily assigned in a lobby.
+
+**Engineering Architecture**
+
+Card uniqueness is a hard rule. A Priestess must announce her finding strictly as "Upright" or "Reversed," not the card name itself. If you claim to be the Priestess but announce finding another Priestess, you expose yourself. The abilities are driven purely by numerical values in `game.ts`, separate from flavor text in `src/data/arcana.ts`. Headless scripts can simulate matches or print transcripts without ever opening the client, proving the complete decoupling of logic and UI.
+
+## 7. Asset Pipeline: Look, Motion, and Score
+
+**Experience Design**
+
+The table feels like a physical place. Cards are richly illustrated, and ordinary play uses an instrumental track. The full song, with lyrics, arrives at the climax of the game. Public card moments are accompanied by atmospheric video clips that play exactly when an ability resolves. Every asset was crafted through a modern AI-assisted pipeline, meticulously directed to maintain a cohesive, Gothic aesthetic.
+
+**Engineering Architecture & Asset Generation**
+
+**Art Direction:** Character portraits, Tarot card illustrations, and game backgrounds were initially generated using Midjourney, then heavily processed and refined in Photoshop to ensure stylistic consistency and correct UI framing.
+
+**Motion Graphics:** The animated Tarot card reveals in `assets/tarot/vfx` were created by animating the static base images using Runway's video generation (Seedance).
+
+**Audio Engineering:** The score was generated using Suno, driven by custom lyrics I wrote, and the full original soundtrack has been officially released across major music streaming platforms. Master, music, and effects are routed to separate volume sliders in the client, allowing the table to be quiet without going mute.
+
+**Vite Range Requests & File Locks:** During development, the video clips are served by Vite using 206 Partial Content Range Requests so long videos start immediately. To prevent the dev server from crashing due to large file locks, these directories are explicitly excluded from file watching. In production, the Electron build uses `loadFile` to read videos directly from the local filesystem, bypassing the middleware.
+
+**Lean Playback:** The client avoids memory-heavy video pools. There is only one `<video>` element on the table (`preload="auto"`). When a new card appears, the video timeline resets and waits for `canplay`. Once finished, the video element pauses and the UI swaps to a static canvas render, freeing up rendering resources.
+
+## Performance: Judgment Dusk
+
+This page features the game's original theme, "Judgment Dusk." Hime takes the stage beside the lyrics, her mouth seamlessly synced to the vocals as she performs the track.
 
 <Soundtrack />
 
-The player is this site's soundtrack component, reading the recorded track. Her body uses the desktop companion's idle walk: a slow random drift, a breath, and an occasional nod. Mouth shapes come from a prepared map of this vocal. The game's own music player is separate, inside the Crimson Moon client.
+(Listen to the complete original soundtrack on Spotify, Youtube Music, and major streaming platforms.)
