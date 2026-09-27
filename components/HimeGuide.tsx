@@ -152,6 +152,7 @@ export function HimeGuide() {
       if (isIntro(id)) {
         introOpen = false;
         introHeld = mediaBusy() || hushRef.current;
+        setCaption("");
       }
       releaseIfReady();
       pump();
