@@ -613,24 +613,31 @@ h1, h2, .statement, .lede {
 
 .split {
   display: grid;
-  width: max-content;
-  max-width: 100%;
-  margin: 2.6rem auto;
-  grid-template-columns: auto minmax(0, 30rem);
-  justify-content: center;
-  gap: 1.4rem 3.6rem;
+  width: 100%;
+  max-width: none;
+  margin: 2.6rem 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 2rem;
   align-items: center;
 }
-.split-shift-left { transform: translateX(2.6rem); }
-.split-shift-right { transform: translateX(10.6rem); }
+.split-shift-left,
+.split-shift-right { transform: none; }
 .split img,
 .shot-inline img {
   user-select: none;
   -webkit-user-drag: none;
 }
-.split-text-left { grid-template-columns: minmax(0, 30rem) auto; }
+.split-text-left { grid-template-columns: 1fr 1fr; }
 .split-text-left figure { order: 2; }
-.split figure { margin: 0; justify-self: center; }
+.split figure {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+.split > div {
+  width: min(100%, 26rem);
+  justify-self: center;
+}
 .split img {
   width: auto;
   height: min(58vh, 32rem);
@@ -651,7 +658,8 @@ h1, h2, .statement, .lede {
 .prose p { color: var(--ink); }
 .prose a { color: var(--gold); }
 .case[data-tone="night"] .prose strong,
-.case[data-tone="crimson"] .prose strong {
+.case[data-tone="crimson"] .prose strong,
+.case[data-tone="amber"] .prose strong {
   color: var(--gold);
   font-weight: 560;
 }
@@ -1185,6 +1193,11 @@ h1, h2, .statement, .lede {
     margin: 1.6rem auto;
     gap: 0.85rem;
     transform: none;
+  }
+
+  .split > div {
+    width: auto;
+    justify-self: stretch;
   }
 
   .split-text-left figure { order: 0; }

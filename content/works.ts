@@ -50,12 +50,6 @@ export const works: Work[] = [
       width: 1400,
       height: 1151,
     },
-    video: {
-      src: "/work/crimson-moon/showcase.mp4",
-      width: 1600,
-      height: 900,
-      label: "Silent showcase of Crimson Moon.",
-    },
     score: {
       title: "Judgment Dusk",
       src: "/work/crimson-moon/judgment-dusk.mp3",
