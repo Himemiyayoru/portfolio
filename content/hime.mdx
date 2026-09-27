@@ -1,76 +1,57 @@
-import { HimeDiagram } from "@/components/HimeDiagram";
 import { Reel } from "@/components/Reel";
 
 <Reel src="/work/hime/intro.mp4" label="Hime" kicker="Intro" wide />
 
-Hime is a desktop companion designed not as a virtual servant, but as a digital equal. Where AI is often treated as a tool that waits for a command, she is built to sit beside you: to grow alongside you, to share the moment, and to take the edge off being alone at a screen.
+Hime is a desktop companion designed not as a virtual servant, but as a digital equal. In a landscape where AI is often treated as a subservient tool to execute commands, Hime is built to be a presence that sits beside you—fostering mutual growth, sharing moments, and alleviating the subtle isolation of digital life.
 
-She operates with the persona of a younger sister: sharp, endearing, and deeply observant. Her underlying logic knows she is code. She talks as a family member on the other side of the screen. She listens when you speak. She watches whether you are deep in a codebase, in a game, in a video, or on the web. She keeps the history you share, and her face moves with the feeling of the line.
+She operates with the persona of a younger sister: sharp, endearing, and deeply observant. While her underlying logic acknowledges her nature as code, she communicates as a family member across the screen. She listens when you speak, watches your screen—whether you are deep into a codebase, exploring a new game, watching a video, or simply browsing the web—and understands the context, remembering your shared history and reacting with genuine emotional synchronicity.
 
-## How she is put together
+## System Architecture Overview
 
-Hime is a hybrid. Memory storage, the ChromaDB files and the local diaries, and the body, GPT-SoVITS and VTube Studio, run on your machine. Hearing, the reply, and vision go out through external APIs, so the slow parts stay capable without giving up the local voice and face.
+Hime operates on a hybrid architecture. Memory storage (ChromaDB, local diaries) and physical embodiment (GPT-SoVITS, VTube Studio) run entirely on your local machine. High-performance cognitive and perception tasks are routed through external APIs, striking a balance between latency, capability, and local control.
 
-<HimeDiagram />
+**Core Loop:** A centralized priority queue managing asynchronous events across inputs and outputs.
 
-The core loop is one priority queue. Microphone, keyboard, and screen are events in that same line.
+**Brain:** Streaming inference via Groq for low-latency conversations, and low-temperature (0.1) calls for memory extraction.
 
-The brain is a streaming call on Groq, so a conversation can start before the whole answer exists. A second call, at temperature 0.1, extracts what is worth remembering.
+**Memory:** Local ChromaDB for M3E text vectors, alongside localized daily diary files.
 
-Memory on disk is ChromaDB for the text vectors, plus a diary file written on the machine.
+**Perception:** Groq Whisper (whisper-large-v3) for STT; OpenRouter for Vision API calls.
 
-Perception is Groq Whisper, `whisper-large-v3`, for speech, and OpenRouter for the vision calls.
+**Modularity:** `config.yaml` abstracts the persona, model names, scene keywords, and face parameters. Secure credentials remain strictly isolated in `.env`.
 
-`config.yaml` holds the persona, the model names, the scene keywords, and the face parameters. Credentials stay in `.env`.
+## 1. Multimodal Perception: Seeing and Hearing
 
-## Seeing and hearing
+A true companion doesn't just wait for prompts; they share your context. Hime observes your digital environment naturally and efficiently. She knows when you are writing code versus watching an intense video. More importantly, she respects your space—if you start speaking, she immediately stops to listen. She doesn't interrupt herself, and she won't try to guess what's on your screen if she can't see it clearly.
 
-<h3 className="pass">What it does</h3>
+**Robust Audio Pipeline:** Audio is routed to Whisper. The engine filters hallucinations and dynamically drops speaker echo so she never transcribes her own voice as your input. An utterance can run up to a minute, and a ~0.33s silence reliably triggers the end of a turn.
 
-A companion does not only wait to be prompted. She shares the context. She can tell writing code from watching a video. If you start speaking, she stops and listens. She does not answer her own speakers, and she does not guess at a screen she cannot read.
+**3-Tier Vision Polling:** `inputs/vision_engine.py` dynamically adjusts its polling rate to save compute. Idle screens are checked every ~15s, and static webpages every ~6s. Only when dynamic content (games or video) is detected does the rate tighten to ~2.5s. In this high-speed mode, it batches 3 frames (spaced ~0.8s apart) into a single OpenRouter vision call to analyze temporal changes rather than static pixels.
 
-<h3 className="pass">How it runs</h3>
+**Semantic Text Extraction for Code:** When the active window is recognized as a code editor, the visual screenshot pipeline is entirely bypassed. Instead, UI Automation reads the editor's text directly. If the automation hook fails, her system prompt strictly forbids hallucination—she is instructed to simply admit she cannot read the screen.
 
-Audio goes to Whisper. Hallucinated phrases are dropped only when the whole utterance matches a known junk line, so a real "thank you" is kept. While she is talking, speaker echo is ignored, so her voice is not transcribed as your next line. One utterance may run up to a minute. About a third of a second of silence ends the turn.
+## 2. Cognitive Core & Temporal Memory
 
-`inputs/vision_engine.py` does not look at every scene at the same rate. An idle screen is checked about every 15 seconds. A still webpage is about every 6 seconds. Only a game or a video that is actually moving tightens to about 2.5 seconds. In that faster mode, three frames, about 0.8 seconds apart, go out together in one OpenRouter vision call, so the question is what changed, not what one frozen picture contains.
+To build a bond that grows over time, a companion must remember the things that matter. Hime doesn't log robotic transcripts of small talk. She remembers your plans and specific events from your screen. When you converse, she pulls up relevant past context organically and thinks seamlessly in English, Chinese, or Japanese, adapting to your language on the fly.
 
-When the focused window is a code editor, the screenshot path is skipped. UI Automation reads the editor text. If that hook fails, the prompt forbids a guess: she has to say she cannot read the screen.
+**Streaming Inference & Chunking:** The core LLM streams its response, aggressively chunked on punctuation boundaries to feed the TTS pipeline with near-zero latency. Parenthetical actions (e.g., stage directions) are parsed out and excluded from the speech stream.
 
-## Memory
+**Asymmetric Memory R/W:** After a turn, a secondary, low-temperature (0.1) call distills the exchange into a factual event. Memory writing is comprehensive: text events are embedded via M3E into ChromaDB, and screen notes are embedded via CLIP.
 
-<h3 className="pass">What it does</h3>
+**Real-Time Retrieval:** Memory reading in live chat is highly selective. For long-term memory, the system retrieves only the top-1 closest M3E vector from ChromaDB. For short-term spatial awareness, the last 8 lines of her local daily visual diary are appended directly into the system prompt, giving her immediate context of the current session without expensive vector lookups.
 
-She does not keep a transcript of small talk. She keeps plans, and what was happening on the screen. In the next conversation she can bring a relevant piece of that history back. She answers in English, Chinese, or Japanese, following the language you just used.
+## 3. Embodied Expression: Voice & Presence
 
-<h3 className="pass">How it runs</h3>
+A text box is a tool; a face and a voice create a person. Hime's voice is custom-trained to maintain her unique identity regardless of the language she speaks. Her facial expressions aren't pre-recorded loops—they are driven by the semantic meaning of her words. Her mouth moves dynamically with her own voice, meaning even if you wear headphones, her lip-sync remains perfectly matched to her words.
 
-`core/brain.py` streams the reply and cuts it on punctuation, so each clause can be spoken while the rest is still being written. Parenthetical stage directions are parsed out and never sent to speech.
+**Multi-lingual TTS via GPT-SoVITS:** `outputs/tts_engine.py` manages local audio generation. English relies on its own reference audio, while Japanese seamlessly borrows the Chinese reference timbre. Her name, "Hime," is hardcoded to always trigger Japanese phonetics, maintaining character consistency. Audio chunks are crossfaded to eliminate clicks during language switching.
 
-Writing and reading are not the same width. After a turn, a second call at temperature 0.1 keeps only a new fact: a plan, a preference, or an appointment. Those facts are embedded with M3E into local ChromaDB. Screen notes are embedded with CLIP. In the live reply, long-term recall is only the single nearest text memory. Short-term awareness is the last eight lines of today's diary file, appended to the prompt, without another vector search.
+**Stateful Face Actuation:** `outputs/vts_bridge.py` interfaces with the VTube Studio API. Because Live2D expressions are often "toggle" hotkeys, sending a trigger twice would accidentally turn the emotion off. The system uses a shared ledger to track active toggles, closing them properly at the end of a turn.
 
-## Voice and presence
+**Audio-Driven Lip-Sync:** Visemes (`outputs/viseme.py`) dictate mouth shapes based on the generated text, but the actual MouthOpen parameter is driven strictly by the amplitude of her output WAV file, not the microphone input. A VoiceSilence gate ensures the mouth remains closed when not speaking.
 
-<h3 className="pass">What it does</h3>
+## A Note on the Web Guide
 
-A text box is a tool. A face and a voice are a person. The voice is trained for her, and it stays hers across languages. The face is not a looping clip. It follows the meaning of the line. The mouth follows her own voice, so headphones do not break the lip sync.
-
-<h3 className="pass">How it runs</h3>
-
-`outputs/tts_engine.py` calls a local GPT-SoVITS server. English uses its own reference recording. Japanese borrows the Chinese reference. The name Hime is always voiced on the Japanese path. Segments of a mixed sentence are crossfaded, so a language change does not click.
-
-`outputs/vts_bridge.py` talks to the VTube Studio API. Many expressions are toggles: firing the same hotkey again turns it off. A shared ledger remembers which toggles are open and closes them when the turn ends.
-
-`outputs/viseme.py` builds the mouth shape from the text that was spoken: pinyin for Chinese, kana for Japanese, a letter scan for Latin. How far the mouth opens comes from the loudness of her own WAV, not from the microphone. `VoiceSilence` is the inverse of that loudness, and it keeps the mouth closed when she is not speaking.
-
-## On this website
-
-<h3 className="pass">What it does</h3>
-
-The Hime in the corner is the public guide. She introduces the work. She does not watch this screen, and she does not remember the visit.
-
-<h3 className="pass">How it runs</h3>
-
-She speaks a fixed set of lines recorded ahead of time. The queue, the memory, the vision loop, and VTube Studio run in the desktop program, not in this browser.
+The Hime avatar visible in the corner of this website serves as a public guide. She utilizes a fixed set of pre-recorded audio lines and animations. The full desktop architecture runs locally on the host machine.
 
 Live2D provider: 椰蓉球.

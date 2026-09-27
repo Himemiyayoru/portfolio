@@ -1,88 +1,54 @@
 import { Maidens } from "@/components/Maidens";
 import { Soundtrack } from "@/components/Soundtrack";
 
-Each feature below is written twice. **What it does** is the piece you can play. **How it runs** is the system behind it.
-
 ## A full table, without a crowd
 
-<h3 className="pass">What it does</h3>
-
 Werewolf usually needs a room of people. Crimson Moon seats one human and eight star maidens, and still plays a full deduction game. Two of those seats are reversed witches. You speak, you vote, and you can be wrong. You do not have to perform for a group.
-
-<h3 className="pass">How it runs</h3>
 
 Nine seats. The human is one. The other eight are drawn from the village for that match. Two seats are reversed witches. Card numbers are unique, so two living players cannot truthfully hold the same Major Arcana. Civilians win when every reversed witch is gone. Witches win when they can no longer be voted out. The rules host is `Game` in `src/engine/game.ts`. The client is React 19 and Vite, in Chinese or English, in the browser or as a Windows Electron build. I built that client in Cursor. The source is on [GitHub](https://github.com/Himemiyayoru/crimson-moon).
 
 ## Two clocks
 
-<h3 className="pass">What it does</h3>
-
 You can play by clicking through each exchange, or you can let a real countdown run. Clicking through is the default, so a slow reader is not punished. The live clock is there when you want a tighter table.
-
-<h3 className="pass">How it runs</h3>
 
 `settings.realtime` starts off. While it is off, the phase clock does not run, and the player advances the exchange. Turning the live clock on starts the countdown, with a speed control in Options. Those settings stay in `localStorage`. An in-progress match can be saved and resumed.
 
 ## Cards with two faces
 
-<h3 className="pass">What it does</h3>
-
 Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match does not use the whole village. It deals a new set of maidens and a new set of powers, so the same card is not the same problem twice. When a power resolves, the card plays on the table.
-
-<h3 className="pass">How it runs</h3>
 
 Ability text lives in `src/data/arcana.ts`. The numbers those abilities change live in `game.ts`. Editing the flavor text does not change the effect. Portrait notes in the Codex are for the player only. They do not feed the planner, and they do not change the win check. Public card moments are video clips in `assets/tarot/vfx`, played when the matching ability resolves. The stills sit beside them under `assets/tarot`.
 
 ## One day
 
-<h3 className="pass">What it does</h3>
-
 A day has an order, and information does not leak across it. Dawn and morning stay private. Tea is a small room. The trial is the only public argument. Then everyone votes without seeing the other hands. At night the witches choose a kill.
-
-<h3 className="pass">How it runs</h3>
 
 The phase order is Dawn, Morning, Tea party, Trial, Nightfall, Sabbath. Dawn is a hidden ability window. Deaths are not announced yet. Morning may place a Minor Arcana omen on the table. Tea-party lines stay with the people in that room, plus a Hermit who is watching. Trial is where claims, counter-claims, and ability intel are said out loud. Nightfall is a blind vote, then the exile is revealed. Sabbath is the living witches' kill, then the remaining night abilities. The planner in `src/engine/ai.ts` only lets a maiden speak from what her seat can know.
 
 ## What she says
 
-<h3 className="pass">What it does</h3>
-
 The maidens talk like people at the table, not like a rules printout. You can answer with a prepared line, write your own, or name someone and pull her into the conversation. If you do nothing, the person who was about to speak finishes her line. The game still plays if you never turn a language model on.
-
-<h3 className="pass">How it runs</h3>
 
 `planSpeech` and `chooseAbilityTargets` decide what an AI means to say and which skill she fires. Trust and suspicion are private to each seat. A language model is optional and off by default. When it is on, `src/engine/llm.ts` only rewrites a finished plan. It does not choose targets, votes, or abilities. Local mode calls an OpenAI-compatible server, default `http://127.0.0.1:11434/v1` and `qwen2.5`, and waits up to 28 seconds. Cloud mode defaults to `https://api.openai.com/v1` and `gpt-4o`, and waits up to 14 seconds. If the request fails, the planned line stays. Naming a maiden in your own line raises her speech weight. Per-character memory logs are written for the match and cleared when you leave the table.
 
 ## The village
 
-<h3 className="pass">What it does</h3>
-
 Fifteen maidens live here. Eight of them sit down with you. The faces are a cast, not a menu of stats. You learn who is sharp, who dodges, and who watches, and that is separate from the card she was dealt.
 
 <Maidens />
-
-<h3 className="pass">How it runs</h3>
 
 Setup draws the seated maidens from the girl pool and deals upright or reversed Major Arcana onto those seats. The Codex lists every ability in both languages. Player-facing copy is in `src/engine/messages.ts` and `src/ui/i18n.tsx`. Headless scripts can simulate a match or print one transcript without opening the client.
 
 ## Look, motion, and the score
 
-<h3 className="pass">What it does</h3>
-
 The table should feel like a place. Cards are illustrated. Ordinary play uses the instrumental. The full song, with words, arrives at the climax. The words are mine. Music and effects have their own volume, so the table can be quiet without going mute.
-
-<h3 className="pass">How it runs</h3>
 
 Card stills and the moving card clips are runtime assets. Vite serves them with range requests, so a long clip can start before the file finishes. Optional Python and Pillow scripts in `scripts/` can rebuild the stills. The score was made in Suno from lyrics I wrote. Master, music, and effects are separate sliders in Options. I built the client in Cursor.
 
 ## Judgment Dusk, on this page
 
-<h3 className="pass">What it does</h3>
-
 This page plays the song. The guide in the corner sways while it plays. She is not locked to the beat. She idles the way she does on the desktop.
 
 <Soundtrack />
-
-<h3 className="pass">How it runs</h3>
 
 The player is this site's soundtrack component, reading the recorded track. Her body uses the desktop companion's idle walk: a slow random drift, a breath, and an occasional nod. Mouth shapes come from a prepared map of this vocal. The game's own music player is separate, inside the Crimson Moon client.
