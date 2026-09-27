@@ -3,96 +3,74 @@ import { Reel } from "@/components/Reel";
 
 <Reel src="/work/hime/intro.mp4" label="Hime" kicker="Intro" wide />
 
-Each feature below is written twice. **What it does** is the companion you can talk to. **How it runs** is the system behind her. She is a desktop program, not a public stream. The first version was written with Gemini. The live system, language, memory, the face, and vision, was continued in Cursor.
+Hime is a desktop companion designed not as a virtual servant, but as a digital equal. Where AI is often treated as a tool that waits for a command, she is built to sit beside you: to grow alongside you, to share the moment, and to take the edge off being alone at a screen.
 
-## Who she is
+She operates with the persona of a younger sister: sharp, endearing, and deeply observant. Her underlying logic knows she is code. She talks as a family member on the other side of the screen. She listens when you speak. She watches whether you are deep in a codebase, in a game, in a video, or on the web. She keeps the history you share, and her face moves with the feeling of the line.
 
-<h3 className="pass">What it does</h3>
+## How she is put together
 
-Hime lives on the same computer as the person she talks to. She is written as a younger sister: sharp when she wants to be, easy to like, and aware that she is a program without lecturing about it. Day to day she talks like a high-school girl. She only jokes about her own hardware when the conversation is actually about a model, a voice, or a bug.
-
-<h3 className="pass">How it runs</h3>
-
-The persona, model names, paths, and avatar tuning live in `config.yaml`. She answers in whichever of Chinese, English, or Japanese the person just used, and she can mix them if they do. Stage directions stay in Chinese and are never spoken. The Live2D model is used with permission, and only so the system can be shown working. The contributor is 椰蓉球. The design takes Neuro-sama's split, a fast voice, a mind behind it, and a driven face, and points it at one person instead of a chat.
+Hime is a hybrid. Memory storage, the ChromaDB files and the local diaries, and the body, GPT-SoVITS and VTube Studio, run on your machine. Hearing, the reply, and vision go out through external APIs, so the slow parts stay capable without giving up the local voice and face.
 
 <HimeDiagram />
 
-## One conversation
+The core loop is one priority queue. Microphone, keyboard, and screen are events in that same line.
+
+The brain is a streaming call on Groq, so a conversation can start before the whole answer exists. A second call, at temperature 0.1, extracts what is worth remembering.
+
+Memory on disk is ChromaDB for the text vectors, plus a diary file written on the machine.
+
+Perception is Groq Whisper, `whisper-large-v3`, for speech, and OpenRouter for the vision calls.
+
+`config.yaml` holds the persona, the model names, the scene keywords, and the face parameters. Credentials stay in `.env`.
+
+## Seeing and hearing
 
 <h3 className="pass">What it does</h3>
 
-She does not juggle separate chats for voice, typing, and the screen. Whatever arrives is one conversation. If you start talking, she stops and listens. A comment she was about to make about the screen waits. She does not hear her own speakers and answer herself.
+A companion does not only wait to be prompted. She shares the context. She can tell writing code from watching a video. If you start speaking, she stops and listens. She does not answer her own speakers, and she does not guess at a screen she cannot read.
 
 <h3 className="pass">How it runs</h3>
 
-`core/events.py` is one priority queue. Microphone, keyboard, and vision are producers of the same event. Voice outranks a proactive screen comment. Starting to speak clears a waiting vision line and interrupts playback. While she is talking, speaker echo is dropped so it is not transcribed as a new question. A slot for audience chat exists. Nothing publishes into it.
+Audio goes to Whisper. Hallucinated phrases are dropped only when the whole utterance matches a known junk line, so a real "thank you" is kept. While she is talking, speaker echo is ignored, so her voice is not transcribed as your next line. One utterance may run up to a minute. About a third of a second of silence ends the turn.
 
-## Hearing, and typing
+`inputs/vision_engine.py` does not look at every scene at the same rate. An idle screen is checked about every 15 seconds. A still webpage is about every 6 seconds. Only a game or a video that is actually moving tightens to about 2.5 seconds. In that faster mode, three frames, about 0.8 seconds apart, go out together in one OpenRouter vision call, so the question is what changed, not what one frozen picture contains.
 
-<h3 className="pass">What it does</h3>
-
-You can talk, or you can type. She follows the language you used. Background noise, and a phrase the recognizer invents out of silence, is ignored. A real sentence is kept, even if it contains a word that silence sometimes hallucinates. A long thought is not cut off in the middle.
-
-<h3 className="pass">How it runs</h3>
-
-`inputs/stt_engine.py` sends microphone audio to Groq Whisper, `whisper-large-v3`, which detects Chinese, English, or Japanese. The guess is checked against the letters, so a short line that happens to contain the name Hime is not pulled into English by mistake. Hallucination filtering requires the whole utterance to match a known junk phrase. A real "thank you" stays. One utterance may run up to a minute. The end of a turn is about a third of a second of silence. A typed line joins the same queue, and `core/lang.py` guesses its language from the text.
-
-## One reply
-
-<h3 className="pass">What it does</h3>
-
-She answers as one person, in one breath. The first words start while she is still finishing the thought, so you are not waiting for a whole paragraph before she speaks.
-
-<h3 className="pass">How it runs</h3>
-
-`core/brain.py` calls one model, `openai/gpt-oss-120b` on Groq, and streams the whole reply. An earlier design spoke a short lead-in from a fast model and handed the rest to a slower one. The two clocks drifted whenever either model changed, and the gap was audible. One model removes the handoff. The stream is cut into clauses on punctuation and each clause is sent to speech as it arrives. A fragment that is only punctuation is absorbed into the next clause. The model is a reasoning model, so the call sets a low reasoning effort and a token budget large enough that the hidden thinking does not eat the visible reply. If a stream finishes with no visible text, she falls back to an error line instead of going silent.
-
-## A trained voice
-
-<h3 className="pass">What it does</h3>
-
-She does not use a stock narrator. The voice is trained for her. Chinese, English, and Japanese can each sound like the same person. Her name is pronounced the same way no matter which language the sentence is in. If you start talking, she stops mid-line.
-
-<h3 className="pass">How it runs</h3>
-
-`outputs/tts_engine.py` calls a local GPT-SoVITS server. Each request carries a reference recording and its transcript, which is what holds the timbre. Chinese, English, and Japanese can each keep their own reference. `core/lang.py` splits a mixed sentence by script, pulls the name Hime out as its own Japanese segment, and requests every segment at once. Edge silence is trimmed and the pieces are crossfaded into one clip, so a language change does not click. Parentheses, including a bracket left open by a truncated clause, are not spoken. Playback goes through pygame and can be interrupted on the sound channel the moment the person starts talking.
+When the focused window is a code editor, the screenshot path is skipped. UI Automation reads the editor text. If that hook fails, the prompt forbids a guess: she has to say she cannot read the screen.
 
 ## Memory
 
 <h3 className="pass">What it does</h3>
 
-She remembers events, not small talk. A plan, a preference, or an appointment can come back later, with the real date attached. She does not store a restatement of who she already is. What she saw on the screen can be found again without being mixed into the chat.
+She does not keep a transcript of small talk. She keeps plans, and what was happening on the screen. In the next conversation she can bring a relevant piece of that history back. She answers in English, Chinese, or Japanese, following the language you just used.
 
 <h3 className="pass">How it runs</h3>
 
-After a turn, a second colder call reads the exchange and returns only a new event. What is kept is stamped with the real timestamp, cut on sentence boundaries, embedded with M3E, and written to a ChromaDB collection in `memory/vector_db.py`. A later reply retrieves the entries that match. Screen notes go to a second collection, embedded with CLIP. Near-duplicate descriptions are dropped. On a still page the filter is strict. In a game or a video it is looser, because two similar sentences can be a fight that has actually moved.
+`core/brain.py` streams the reply and cuts it on punctuation, so each clause can be spoken while the rest is still being written. Parenthetical stage directions are parsed out and never sent to speech.
 
-## The face
+Writing and reading are not the same width. After a turn, a second call at temperature 0.1 keeps only a new fact: a plan, a preference, or an appointment. Those facts are embedded with M3E into local ChromaDB. Screen notes are embedded with CLIP. In the live reply, long-term recall is only the single nearest text memory. Short-term awareness is the last eight lines of today's diary file, appended to the prompt, without another vector search.
+
+## Voice and presence
 
 <h3 className="pass">What it does</h3>
 
-The face is driven, not a looping video. She looks happy, angry, sad, or shocked because the line said so. A word in her own sentence can make her blush, lean in, or cry, and the gesture lands on that word. While she is quiet, her head still moves. The mouth opens from her voice, and the shape of the mouth follows the vowel. Headphones do not freeze the mouth, because it is not listening to the microphone.
+A text box is a tool. A face and a voice are a person. The voice is trained for her, and it stays hers across languages. The face is not a looping clip. It follows the meaning of the line. The mouth follows her own voice, so headphones do not break the lip sync.
 
 <h3 className="pass">How it runs</h3>
 
-`outputs/vts_bridge.py` authenticates to VTube Studio's plugin API and caches every hotkey the loaded model publishes, with the type the studio reports: a toggle expression or a one-shot animation. A shared ledger opens and closes toggles. A toggle that is already on is not fired again, because a second trigger would turn it off. When the turn ends, every toggle she opened is closed, whether it came from an emotion tag or from a keyword. Five tags the reply must emit, happy, angry, sad, shock, and neutral, map to this model's hotkeys. A separate keyword list fires gestures at the moment that clause's audio starts, not when the text is generated. Idle motion is a per-parameter random walk, plus a light breathing sine and an occasional nod. Amplitude scales with mood and with how loud she currently is. Loudness drives `MouthOpen` from her own WAV. `outputs/viseme.py` turns the exact text sent to speech into a vowel sequence, pinyin for Chinese, a kana-row lookup for Japanese, a letter scan for Latin, and spreads it across the clip on the same clock. `VoiceSilence` is the inverse of that loudness, which is the gate VTube Studio uses between the default mouth and the vowel shapes. Silence keeps the mouth closed and the gate shut.
+`outputs/tts_engine.py` calls a local GPT-SoVITS server. English uses its own reference recording. Japanese borrows the Chinese reference. The name Hime is always voiced on the Japanese path. Segments of a mixed sentence are crossfaded, so a language change does not click.
 
-## The screen
+`outputs/vts_bridge.py` talks to the VTube Studio API. Many expressions are toggles: firing the same hotkey again turns it off. A shared ledger remembers which toggles are open and closes them when the turn ends.
 
-<h3 className="pass">What it does</h3>
-
-She can tell whether you are idle, writing code, reading a page, watching a video, or playing a game, and she talks about what is changing, not about one frozen picture. A quiet desktop is left alone. A moving game or video gets more of her attention. She does not publish what she sees. The notes stay on the machine.
-
-<h3 className="pass">How it runs</h3>
-
-`inputs/vision_engine.py` grabs the display about five times a second and does not send every frame to a model. A small grayscale difference against the previous tick decides whether the picture is changing, and that decision is remembered for a few seconds. `inputs/vision_router.py` reads the focused window against keyword lists in `config.yaml`: game, video, editor, browser, or idle. Video is tested before the generic browser list, so a tab that is playing a video is not classified as a page of text. Idle backs off to about fifteen seconds. A still page is about six. A game, or a video that is actually moving, tightens to about two and a half seconds, and falls back if the video is paused. Those moving scenes send three recent frames, about four fifths of a second apart, in one request, and the prompt asks what is changing. Each scene has its own prompt. An editor skips screenshots. UI Automation reads the editor text. Vision calls go through OpenRouter. A separate pixel path for a calibrated HUD, health, an ultimate, a kill feed, is reserved and not filled in, because a wrong coordinate is a detector that never fires. Until a session is measured, the vision model is the path that works for any title.
+`outputs/viseme.py` builds the mouth shape from the text that was spoken: pinyin for Chinese, kana for Japanese, a letter scan for Latin. How far the mouth opens comes from the loudness of her own WAV, not from the microphone. `VoiceSilence` is the inverse of that loudness, and it keeps the mouth closed when she is not speaking.
 
 ## On this website
 
 <h3 className="pass">What it does</h3>
 
-The Hime in the corner is the public guide for this site. She introduces the work. She does not watch this screen, and she does not remember the visit.
+The Hime in the corner is the public guide. She introduces the work. She does not watch this screen, and she does not remember the visit.
 
 <h3 className="pass">How it runs</h3>
 
-The guide speaks a fixed set of prepared lines, with audio recorded ahead of time. She is not the desktop process. The queue, the memory, the vision loop, and the VTube Studio session do not run in the browser.
+She speaks a fixed set of lines recorded ahead of time. The queue, the memory, the vision loop, and VTube Studio run in the desktop program, not in this browser.
+
+Live2D provider: 椰蓉球.
