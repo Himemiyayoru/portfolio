@@ -1,3 +1,4 @@
+import { HimeDiagram } from "@/components/HimeDiagram";
 import { Reel } from "@/components/Reel";
 
 <Reel src="/work/hime/intro.mp4" label="Hime" kicker="Intro" wide />
@@ -19,6 +20,8 @@ Hime operates on a hybrid architecture. Memory storage (ChromaDB, local diaries)
 **Perception:** Groq Whisper (whisper-large-v3) for STT; OpenRouter for Vision API calls.
 
 **Modularity:** `config.yaml` abstracts the persona, model names, scene keywords, and face parameters. Secure credentials remain strictly isolated in `.env`.
+
+<HimeDiagram />
 
 ## 1. Multimodal Perception: Seeing and Hearing
 
