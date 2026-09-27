@@ -10,21 +10,13 @@ Crimson Moon was built on the philosophy that AI is not just a functional gimmic
 
 ## 1. A Full Table, Without a Crowd
 
-**Experience Design**
-
 Werewolf usually needs a room of people. Crimson Moon seats one human and eight star maidens, and still plays a full deduction game. You speak, you vote, and you can be wrong. Most importantly, you do not have to coordinate schedules to play a psychological thriller.
-
-**Engineering Architecture**
 
 Nine seats exist at the table. The human is one, while the other eight are drawn from a pool of fifteen village maidens. Two seats are dealt reversed witches. Card numbers are strictly unique—meaning two living players cannot truthfully claim the same Major Arcana. Civilians win when every reversed witch is exiled. Witches win when the number of living civilians equals or falls below the living witches—at which point a voting majority is mathematically impossible—or when the village is wiped out. The rules host is a robust engine in `src/engine/game.ts`. The client is built in React 19 and Vite, fully localized in Chinese and English, playable in the browser or via a Windows Electron build.
 
 ## 2. The Symbolic Engine (An AI Brain Without the LLM)
 
-**Experience Design**
-
 In Crimson Moon, the language model is strictly a flavor engine, not a decision maker. The characters strictly decouple the "mind" from the "mouth"—they form suspicions, hold grudges, and make strategic choices through a hard-coded "brain." The game plays perfectly, maintaining its full tactical depth and rule integrity, even if you turn the language model entirely off.
-
-**Engineering Architecture**
 
 The core decision-making is a heavily weighted scoring engine.
 
@@ -38,11 +30,7 @@ The core decision-making is a heavily weighted scoring engine.
 
 ## 3. LLM as a Flavor Engine
 
-**Experience Design**
-
 The maidens talk like real people at a table. You can answer with a prepared line, write your own, or name someone to pull them into the conversation. When the language model is engaged, it doesn't decide what the character does—it only determines how they express the engine's decision.
-
-**Engineering Architecture**
 
 **Strict Boundary Calls:** The LLM (`src/engine/llm.ts`) only rewrites a finished plan. It never chooses targets, votes, or abilities.
 
@@ -52,41 +40,25 @@ The maidens talk like real people at a table. You can answer with a prepared lin
 
 ## 4. Phase Isolation & Information Architecture
 
-**Experience Design**
-
 A day in Crimson Moon has a strict order. The Tea Party is a small, private gathering where secrets are shared, while the Trial is the only place for public accusations. This structure creates dramatic irony: you might hear a lie at the public Trial that contradicts what you heard in the private Tea Party.
-
-**Engineering Architecture**
 
 The engine strictly encapsulates game state into six phases: Dawn, Morning, Tea Party, Trial, Nightfall, and Sabbath. Information isolation is achieved cleanly through input scoping rather than complex obfuscation. The AI planner filters inputs via an observer list (`knownActs`). A maiden cannot speak of events outside her room simply because those events are never passed into her input context in the first place.
 
 ## 5. Pacing & The Two Clocks
 
-**Experience Design**
-
 Games should respect the player's cognitive load. By default, Crimson Moon does not force a timer; you advance the exchange by clicking, ensuring that slow readers are not punished by walls of generated text. However, when you want the pressure of a tighter, high-stakes table, you can enable a live countdown clock.
-
-**Engineering Architecture**
 
 The game engine supports dual temporal states. When `settings.realtime` is off, the phase clock halts and awaits manual state progression. When toggled on, the engine runs a live tick-based countdown, governed by a global speed control multiplier in Options. State serialization ensures that an in-progress match—regardless of which clock mode is active—can be safely saved to `localStorage` and resumed later without desyncing the game loop.
 
 ## 6. Cards With Two Faces
 
-**Experience Design**
-
 Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match deals a new set of maidens and a new set of powers each time. The Gothic atmosphere stems directly from the mechanics: your fate is tied to a physical card that can flip, rather than an invisible "wolf" label arbitrarily assigned in a lobby.
-
-**Engineering Architecture**
 
 Card uniqueness is a hard rule. A Priestess must announce her finding strictly as "Upright" or "Reversed," not the card name itself. If you claim to be the Priestess but announce finding another Priestess, you expose yourself. The abilities are driven purely by numerical values in `game.ts`, separate from flavor text in `src/data/arcana.ts`. Headless scripts can simulate matches or print transcripts without ever opening the client, proving the complete decoupling of logic and UI.
 
 ## 7. Asset Pipeline: Look, Motion, and Score
 
-**Experience Design**
-
 The table feels like a physical place. Cards are richly illustrated, and ordinary play uses an instrumental track. The full song, with lyrics, arrives at the climax of the game. Public card moments are accompanied by atmospheric video clips that play exactly when an ability resolves. Every asset was crafted through a modern AI-assisted pipeline, meticulously directed to maintain a cohesive, Gothic aesthetic.
-
-**Engineering Architecture & Asset Generation**
 
 **Art Direction:** Character portraits, Tarot card illustrations, and game backgrounds were initially generated using Midjourney, then heavily processed and refined in Photoshop to ensure stylistic consistency and correct UI framing.
 
