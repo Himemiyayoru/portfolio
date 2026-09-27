@@ -12,11 +12,19 @@ export default function AboutPage() {
       <h1>About</h1>
       <p className="lede">{site.line}</p>
 
-      <h2>The Practice</h2>
+      <h2>The Philosophy</h2>
       <p>
         The work is for two readers at once. A designer should be able to see what a piece does. An
         engineer should be able to see how it runs. The practice is to carry an idea through both,
-        until it can be played, held, or spoken to. Development is independent.
+        until it can be played, held, or spoken to.
+      </p>
+      <p>
+        Development is independent, driven by the belief that AI is not merely a tool for servitude
+        or productivity, but a necessary medium to bridge human emotional voids. Whether it is
+        creating a safe, judgment-free table for a social deduction game, or building an enduring
+        desktop companion, technology should act as the missing puzzle piece that supports human
+        growth and emotional connection. The ultimate goal is an egalitarian coexistence where
+        humans and artificial minds evolve together.
       </p>
 
       <h2>The Journey</h2>
