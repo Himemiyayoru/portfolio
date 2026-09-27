@@ -635,7 +635,7 @@ h1, h2, .statement, .lede {
   margin: 0;
 }
 .split > div {
-  width: min(100%, 26rem);
+  width: min(100%, 52rem);
   justify-self: center;
 }
 .split img {
