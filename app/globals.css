@@ -1037,6 +1037,12 @@ h1, h2, .statement, .lede {
 
 .schools li { border-top: 1px solid var(--line); padding-top: 0.7rem; }
 .schools strong { display: block; font-family: var(--serif); font-size: 1.4rem; font-weight: 460; }
+.schools.tracks strong {
+  color: var(--gold);
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 560;
+}
 .schools span { color: var(--gold); font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em; }
 .schools p { margin: 0.3rem 0 0; color: var(--muted); }
 .skill-row {
