@@ -3,7 +3,7 @@ export function HimeDiagram() {
     <figure className="diagram">
       <div
         className="arch"
-        aria-label="Hybrid architecture. Microphone audio goes to Groq Whisper, the keyboard goes straight in, and the screen goes to OpenRouter vision. All three meet a priority queue on this machine. The queue calls Groq for a streaming reply, spoken by local GPT-SoVITS and shown on the local VTube Studio face, and calls Groq again to store a memory in local ChromaDB and the diary."
+        aria-label="Hybrid architecture. Microphone audio goes to Groq Whisper, the keyboard goes straight in, and the screen goes to OpenRouter vision. All three meet a priority queue on this machine. The queue produces a streaming reply, spoken by local GPT-SoVITS and shown on the local VTube Studio face, and a later pass stores a memory in local ChromaDB and the diary."
       >
         <div className="arch-head">
           <span>Topology</span>
@@ -46,7 +46,7 @@ export function HimeDiagram() {
           </span>
           <span className="arch-node remote" style={{ gridArea: "reply" }}>
             <em>Brain</em>
-            Groq streaming reply
+            Streaming reply
           </span>
           <span className="arch-node local" style={{ gridArea: "voice" }}>
             <em>Embodiment</em>

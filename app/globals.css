@@ -650,6 +650,10 @@ h1, h2, .statement, .lede {
 }
 .prose p { color: var(--ink); }
 .prose a { color: var(--gold); }
+.case[data-tone="night"] .prose strong {
+  color: var(--gold);
+  font-weight: 560;
+}
 
 .score {
   margin: 1.4rem 0;
