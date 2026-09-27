@@ -1,60 +1,88 @@
 import { Maidens } from "@/components/Maidens";
 import { Soundtrack } from "@/components/Soundtrack";
 
-## Why it exists
+Each feature below is written twice. **What it does** is the piece you can play. **How it runs** is the system behind it.
 
-Werewolf asks for the one thing a socially anxious player can least afford to spend: a room, a turn to speak, and the chance of being the person everyone has decided to suspect. The game is famous because that pressure works. It is also why some people never sit down.
+## A full table, without a crowd
 
-Crimson Moon keeps the structure and removes the crowd. The other seats are held by AI maidens. You still have to talk, answer, and risk a vote. You do not have to do it in front of strangers. Played that way, a match is also practice. The sentence still has to be made, and the table will still wait to hear it.
+<h3 className="pass">What it does</h3>
+
+Werewolf usually needs a room of people. Crimson Moon seats one human and eight star maidens, and still plays a full deduction game. Two of those seats are reversed witches. You speak, you vote, and you can be wrong. You do not have to perform for a group.
+
+<h3 className="pass">How it runs</h3>
+
+Nine seats. The human is one. The other eight are drawn from the village for that match. Two seats are reversed witches. Card numbers are unique, so two living players cannot truthfully hold the same Major Arcana. Civilians win when every reversed witch is gone. Witches win when they can no longer be voted out. The rules host is `Game` in `src/engine/game.ts`. The client is React 19 and Vite, in Chinese or English, in the browser or as a Windows Electron build. I built that client in Cursor. The source is on [GitHub](https://github.com/Himemiyayoru/crimson-moon).
 
 ## Two clocks
 
-One clock is ordinary time. It does not pause, and it is meant to feel sharp. Hesitation has a cost.
+<h3 className="pass">What it does</h3>
 
-The other clock was rebuilt for this player. It moves by exchanges, not by seconds. Until you press next, the table stays where it is. You can assemble a sentence. The room does not punish you for the time that takes.
+You can play by clicking through each exchange, or you can let a real countdown run. Clicking through is the default, so a slow reader is not punished. The live clock is there when you want a tighter table.
 
-If composing a speech is the part you would rather skip, preset lines are already in the game. A match can run on a local language model or a cloud one. The cloud model is there for when the lines should come back polished.
+<h3 className="pass">How it runs</h3>
 
-## Cards, and no plain villagers
+`settings.realtime` starts off. While it is off, the phase clock does not run, and the player advances the exchange. Turning the live clock on starts the countdown, with a speed control in Options. Those settings stay in `localStorage`. An in-progress match can be saved and resumed.
 
-A classic game already assigns a role by a draw. That draw is close enough to a tarot that the identity here is a card.
+## Cards with two faces
 
-Upright cards keep the village. Reversed cards are the witches. There is no plain villager waiting out the night with nothing to do. Each seat receives a Major Arcana, and with it an identity and an ability.
+<h3 className="pass">What it does</h3>
 
-The table itself is not fixed. Each match chooses, at random, which maidens sit down and which tarot ability each of them draws. The same cast does not return with the same powers. That is what makes another evening worth playing.
+Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match does not use the whole village. It deals a new set of maidens and a new set of powers, so the same card is not the same problem twice. When a power resolves, the card plays on the table.
+
+<h3 className="pass">How it runs</h3>
+
+Ability text lives in `src/data/arcana.ts`. The numbers those abilities change live in `game.ts`. Editing the flavor text does not change the effect. Portrait notes in the Codex are for the player only. They do not feed the planner, and they do not change the win check. Public card moments are video clips in `assets/tarot/vfx`, played when the matching ability resolves. The stills sit beside them under `assets/tarot`.
+
+## One day
+
+<h3 className="pass">What it does</h3>
+
+A day has an order, and information does not leak across it. Dawn and morning stay private. Tea is a small room. The trial is the only public argument. Then everyone votes without seeing the other hands. At night the witches choose a kill.
+
+<h3 className="pass">How it runs</h3>
+
+The phase order is Dawn, Morning, Tea party, Trial, Nightfall, Sabbath. Dawn is a hidden ability window. Deaths are not announced yet. Morning may place a Minor Arcana omen on the table. Tea-party lines stay with the people in that room, plus a Hermit who is watching. Trial is where claims, counter-claims, and ability intel are said out loud. Nightfall is a blind vote, then the exile is revealed. Sabbath is the living witches' kill, then the remaining night abilities. The planner in `src/engine/ai.ts` only lets a maiden speak from what her seat can know.
+
+## What she says
+
+<h3 className="pass">What it does</h3>
+
+The maidens talk like people at the table, not like a rules printout. You can answer with a prepared line, write your own, or name someone and pull her into the conversation. If you do nothing, the person who was about to speak finishes her line. The game still plays if you never turn a language model on.
+
+<h3 className="pass">How it runs</h3>
+
+`planSpeech` and `chooseAbilityTargets` decide what an AI means to say and which skill she fires. Trust and suspicion are private to each seat. A language model is optional and off by default. When it is on, `src/engine/llm.ts` only rewrites a finished plan. It does not choose targets, votes, or abilities. Local mode calls an OpenAI-compatible server, default `http://127.0.0.1:11434/v1` and `qwen2.5`, and waits up to 28 seconds. Cloud mode defaults to `https://api.openai.com/v1` and `gpt-4o`, and waits up to 14 seconds. If the request fails, the planned line stays. Naming a maiden in your own line raises her speech weight. Per-character memory logs are written for the match and cleared when you leave the table.
 
 ## The village
 
-The story is set in an astrology village. The maidens who live there are untroubled. They divine, they resonate with the moon, and each of them has learned a Major Arcana of her own.
+<h3 className="pass">What it does</h3>
 
-Then the bright moon turns scarlet. Some of the maidens are still resonating when it happens, and the evil in that moon gets into them. Their cards reverse. They become witches. Each night a witch stays alive by taking another maiden's tarot power. The maiden who loses that power dies in pain.
-
-So the village holds a trial every evening. Everyone votes. The person they suspect is executed. The witches keep their faces hidden, and they enjoy the confusion.
-
-Fifteen maidens live in the village. Each one has a history of her own.
+Fifteen maidens live here. Eight of them sit down with you. The faces are a cast, not a menu of stats. You learn who is sharp, who dodges, and who watches, and that is separate from the card she was dealt.
 
 <Maidens />
 
-## The day
+<h3 className="pass">How it runs</h3>
 
-Morning. The maidens wake. Some of them may spend a tarot ability and learn something the others do not have.
+Setup draws the seated maidens from the girl pool and deals upright or reversed Major Arcana onto those seats. The Codex lists every ability in both languages. Player-facing copy is in `src/engine/messages.ts` and `src/ui/i18n.tsx`. Headless scripts can simulate a match or print one transcript without opening the client.
 
-Noon. The sun meets the crimson moon, and an anomaly appears. It is drawn from the Minor Arcana. At its worst, it changes the state of the match.
+## Look, motion, and the score
 
-Afternoon tea. The players still alive are split into small rooms. A maiden cannot hear a room she is not in. This is the hour for trading what you know, and for deciding what you will not say when the whole table is listening.
+<h3 className="pass">What it does</h3>
 
-Dusk. Everyone is gathered again. They argue, then vote for the person to execute.
+The table should feel like a place. Cards are illustrated. Ordinary play uses the instrumental. The full song, with words, arrives at the climax. The words are mine. Music and effects have their own volume, so the table can be quiet without going mute.
 
-Night. The witches move. They remove the maiden who threatens them most.
+<h3 className="pass">How it runs</h3>
 
-## How it was made
+Card stills and the moving card clips are runtime assets. Vite serves them with range requests, so a long clip can start before the file finishes. Optional Python and Pillow scripts in `scripts/` can rebuild the stills. The score was made in Suno from lyrics I wrote. Master, music, and effects are separate sliders in Options. I built the client in Cursor.
 
-The maidens and the tarot cards were generated in Midjourney, then refined in Photoshop. A card, when it is shown, plays an animation made in Runway. The score was generated in Suno. The lyrics are mine. Ordinary play uses the instrumental. At the climax the full song comes in, voice included. The game itself was built in Cursor.
+## Judgment Dusk, on this page
 
-## Music player
+<h3 className="pass">What it does</h3>
 
-Press play under Hime to hear the score. The lyrics are beside her.
+This page plays the song. The guide in the corner sways while it plays. She is not locked to the beat. She idles the way she does on the desktop.
 
 <Soundtrack />
 
-The source is on [GitHub](https://github.com/Himemiyayoru/crimson-moon).
+<h3 className="pass">How it runs</h3>
+
+The player is this site's soundtrack component, reading the recorded track. Her body uses the desktop companion's idle walk: a slow random drift, a breath, and an occasional nod. Mouth shapes come from a prepared map of this vocal. The game's own music player is separate, inside the Crimson Moon client.

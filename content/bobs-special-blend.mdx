@@ -3,6 +3,8 @@ import { Split } from "@/components/Split";
 
 <Reel src="/work/bobs-special-blend/demo.mp4" label="Bob's Special Blend" />
 
+Each feature below is written twice. **What it does** is the piece you can hold. **How it runs** is the system behind it. The phone is React Native on Expo. The service is FastAPI, at `bobs-special-blend.onrender.com`. I made the phone, the physics drawing, and the service with Gemini.
+
 <Split
   src="/work/bobs-special-blend/library.jpg"
   alt="The library, with cocktails grouped into families and scrolled sideways."
@@ -12,7 +14,13 @@ import { Split } from "@/components/Split";
   shift="left"
   title="The library"
 >
-The library is the screen a cocktail app is expected to open on, and it is kept that way on purpose. Each family is a horizontal row: highballs, sours, and the rest. A card shows the drink and its glass, and opens the recipe. More than four hundred recipes come from TheCocktailDB and keep their real names. A heart writes that recipe's id into storage on the phone. Saved is that list, drawn as the same cards.
+<h3 className="pass">What it does</h3>
+
+This is the screen a cocktail app is expected to open on. Drinks are grouped into families, and each family scrolls sideways: highballs, sours, and the rest. A card shows the drink and opens the recipe. Tap the heart and it is saved. Saved is that same list, kept for later.
+
+<h3 className="pass">How it runs</h3>
+
+The catalog is more than four hundred recipes, seeded from TheCocktailDB and served by `GET /api/v2/recipes`. Each entry keeps a real name, a method, a glass, and components in milliliters. The card photograph is fetched live from TheCocktailDB by that name. A heart writes the recipe id into AsyncStorage on the phone, under `@cocktail_favorites`. The Saved tab filters the catalog down to those ids. Nothing about a heart is sent to the service.
 </Split>
 
 <Split
@@ -24,7 +32,13 @@ The library is the screen a cocktail app is expected to open on, and it is kept 
   shift="right"
   title="The cabinet"
 >
-The cabinet is for a kitchen, not a backbar. You mark the bottles and mixers already in the house, and those marks stay on the phone. Matching is a set difference against every recipe. Nothing missing is a perfect match. One or two missing is almost there, with the missing names written on the card. The closer drinks are sorted first. The answer is only what the shelf can actually support.
+<h3 className="pass">What it does</h3>
+
+The cabinet is a kitchen, not a backbar. You mark the bottles and mixers already in the house. The app then tells you what you can make right now, and what you could make if you bought one or two more things. The missing names are written on the card.
+
+<h3 className="pass">How it runs</h3>
+
+Marks stay on the phone in AsyncStorage, under `@cocktail_inventory`. Matching is a request to `POST /api/v2/match`. The service turns the shelf into a set and, for every recipe, subtracts that set from the recipe's ingredients. Zero missing is a perfect match. One or two missing is almost there, with the missing names attached. Closer drinks are sorted first. The ingredient list itself comes from `GET /api/v2/ingredients`, grouped by category.
 </Split>
 
 <Split
@@ -36,7 +50,13 @@ The cabinet is for a kitchen, not a backbar. You mark the bottles and mixers alr
   shift="left"
   title="Search"
 >
-The names are already on the phone, and each letter filters them. A name that contains what you typed is an exact hit. If nothing contains it, the search counts how many edits would turn the query into a recipe name, keeps the ones within three edits, and shows the five closest. A misspelling still lands on a drink, and the keystrokes never leave the device.
+<h3 className="pass">What it does</h3>
+
+You type what you remember of a name. If a recipe contains those letters, it shows up. If you misspell it, the closest real names still appear. The search does not leave the phone.
+
+<h3 className="pass">How it runs</h3>
+
+The catalog is already on the device. Each keystroke filters it in memory. A name that contains the query is an exact hit and stops the search. If nothing contains it, the phone computes Levenshtein distance against every recipe name, keeps distances of three or less, sorts them, and shows the five closest. No search request is sent.
 </Split>
 
 <Split
@@ -48,7 +68,13 @@ The names are already on the phone, and each letter filters them. A name that co
   shift="right"
   title="Ask Bob"
 >
-Ask Bob is the part of drinking alone that is still a conversation. You say how the day went, by typing or by holding the button and talking, and he answers the mood before he names a drink. The name is exactly one cocktail from the menu he was given. He does not invent one. The service checks that name against the catalog and opens the real recipe under the reply, so the conversation ends on a glass you can actually make.
+<h3 className="pass">What it does</h3>
+
+Ask Bob is the part of drinking alone that is still a conversation. You say how the day went, by typing or by holding the button and talking. He answers the mood before he names a drink. The name is one cocktail from the menu. He does not invent one. The reply opens the real recipe, so the conversation ends on a glass you can make.
+
+<h3 className="pass">How it runs</h3>
+
+Speech is recorded on the phone and posted to `POST /api/v2/transcribe`. The service sends that file to OpenAI Whisper (`whisper-1`) and returns the text. Chat goes to `POST /api/v2/chat_with_bob`. Bob is Llama 3.1 8B Instant on Groq, with the full catalog names in the system prompt, temperature 0.5, a short token cap, and a required JSON shape: a comment, and exactly one menu name or an empty string. The service matches that name exactly, then by partial overlap. A name that is not on the menu is dropped, and Bob is left as conversation. Both routes are rate-limited per address.
 </Split>
 
 <Split
@@ -60,29 +86,21 @@ Ask Bob is the part of drinking alone that is still a conversation. You say how 
   shift="left"
   title="The glass that recalculates"
 >
-A drink opens on its photograph. The other view draws the glass. Seven glasses are modeled, each with a capacity, and the liquid is clipped to that shape. Pass the capacity and the fill stops at the rim. Move a measure, replace a bottle, or change the glass, and the photograph gives way to the drawing, because the photograph is no longer the drink you are making.
+<h3 className="pass">What it does</h3>
 
-Alcohol and sweetness are volume-weighted averages of whatever is in the glass. Color is mixed by how much light each ingredient absorbs, then turned back into a color, so a dark bottle darkens the result instead of being averaged away. In the layered state, each ingredient is given a density from its sweetness and its alcohol, and the denser liquid is drawn underneath. The mixed state uses one blended color. Under the drawing, alcohol, sweetness, and volume are shown against the original, with the direction of the change: stronger, milder, sweeter, drier, or close to where it started. Substitutes are other ingredients in the same category, ranked by the distance between those physical values.
+A drink opens on its photograph. Move a measure, swap a bottle, or change the glass, and the photograph gives way to a drawing, because the photograph is no longer the drink you are making. The liquid fits the glass. Past the rim, it stops. You can see it mixed into one color, or poured in layers. Alcohol, sweetness, and volume sit next to the original, with the direction of the change. A substitute is another ingredient in the same family, ranked by how close it is.
+
+<h3 className="pass">How it runs</h3>
+
+The drawing is computed on the phone, in the recipe screen, so a slider does not wait on the network. Seven glasses are modeled as SVG profiles with a capacity: highball, rocks, martini, coupe, flute, Nick and Nora, and shot. Fill is clipped to that capacity. Alcohol and Brix are volume-weighted averages of the ingredients in the glass. Color uses a Beer-Lambert approximation: each channel's absorbance is summed by volume, then converted back to RGB, so a dark bottle darkens the result instead of being averaged away. Layered mode estimates specific gravity as `1 + brix × 0.004 − abv × 0.001` and draws the denser liquid underneath. Mixed mode uses the one blended color. Substitutes come from `GET /api/v2/substitute`. The service scores other ingredients in the same category by the gap in ABV, Brix, pH, and RGB distance, and returns the closest. Each ingredient's baseline, alcohol, Brix, acidity, color, and opacity, was estimated when the catalog was seeded.
 </Split>
 
 ## Why it exists
 
-The project started with a colleague who had just taken the job. Most of what he told were stories about drinking too much, and he had studied mathematics. The useful connection was between those two facts. A recipe is a set of quantities. Change one, and the finished drink should change in a way that can be calculated: color, alcohol, sweetness, and whether the liquids blend or sit in layers. That calculation is the app.
+<h3 className="pass">What it does</h3>
 
-## Who it is for
+The project started with a colleague who had just taken the job. Most of what he told were stories about drinking too much, and he had studied mathematics. A recipe is a set of quantities. Change one, and the finished drink should change in a way you can see: color, alcohol, sweetness, and whether the liquids blend or sit in layers.
 
-It is for someone mixing at home. The cabinet is for a partial shelf, the bottles already in the house. The recipe screen is for a person who wants to change a drink and see the glass before pouring it. Ask Bob is for the evening when the company is the point: you say how the day went, and you still leave with one real drink from the menu.
+<h3 className="pass">How it runs</h3>
 
-## What sets it apart
-
-Cocktail apps are catalogs. This one keeps the catalog, then lets the recipe be edited, and draws the edit. Volume, color, alcohol, and sweetness are recomputed from whatever is in the glass. A layered drink shows the change as bands, ordered by density, so a shot makes the difference obvious. A substitute is another ingredient in the same family, ranked by how close it sits in alcohol, sweetness, acidity, and color. Bob can miss the way a person misses. The glass follows the numbers.
-
-## How it is put together
-
-The phone is React Native on Expo, in five tabs: Library, My Cabinet, Search, Ask Bob, and Saved. The service behind it is FastAPI. Recipes began as TheCocktailDB entries and were normalized into milliliters, a method, a glass, and a physics baseline for each ingredient: alcohol by volume, Brix, acidity, color, and how opaque it is. The photographs on the cards still come from TheCocktailDB. The glass is calculated on the phone, so moving a measure does not wait on the network.
-
-Bob and the transcription run on the service. The model is Llama 3.1, called through Groq, and the reply is kept short and in a fixed shape: what he says, and the drink's name. An exact match is tried first, then a partial one. A recommendation that is not on the menu is dropped, and Bob is left as conversation. Speech is transcribed with Whisper and sent on as the message.
-
-## How it was made
-
-I made the phone, the physics drawing, and the service with Gemini. The video above is the piece you can hold.
+That calculation is the app. The catalog stays a catalog. The recipe screen is the editor. The glass follows the numbers. I made the phone, the physics drawing, and the service with Gemini. The video above is the piece you can hold.
