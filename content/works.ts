@@ -63,7 +63,7 @@ export const works: Work[] = [
     year: "2026",
     role: "Product, phone, service",
     lede: "A phone app for mixing at home. Browse the catalog, mark what you own, search a half-remembered name, ask the bartender, or change a measure and watch the glass redraw.",
-    plate: "A phone that turns a recipe change into a glass you can see.",
+    plate: "A phone for mixing at home. Change a measure, and watch the glass redraw.",
     tone: "amber",
     frame: "phone",
     images: [],
