@@ -628,11 +628,14 @@ h1, h2, .statement, .lede {
   -webkit-user-drag: none;
 }
 .split-text-left { grid-template-columns: 1fr 1fr; }
-.split-text-left figure { order: 2; }
 .split figure {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   margin: 0;
+}
+.split-text-left figure {
+  order: 2;
+  justify-content: flex-start;
 }
 .split > div {
   width: min(100%, 52rem);
@@ -1198,6 +1201,11 @@ h1, h2, .statement, .lede {
   .split > div {
     width: auto;
     justify-self: stretch;
+  }
+
+  .split figure,
+  .split-text-left figure {
+    justify-content: center;
   }
 
   .split-text-left figure { order: 0; }
