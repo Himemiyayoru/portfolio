@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --paper: #120e14;
   --paper-2: #1b1520;
   --ink: #f3eadf;
@@ -854,58 +854,166 @@ h1, h2, .statement, .lede {
 .spine-compact p { display: none; }
 .spine-compact li { border: 0; padding: 0; }
 
-.diagram { margin: 1.2rem 0; }
-.diagram-flow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem;
-}
-.diagram-flow > span,
-.diagram-flow > div > span {
-  display: block;
-  border: 1px solid var(--gold);
-  background: #1b1520;
-  padding: 0.55rem 0.7rem;
-}
-.diagram-flow > div { display: grid; gap: 0.45rem; }
-.diagram-arrow { border: 0 !important; background: transparent !important; color: var(--gold); padding: 0 !important; }
+.diagram { margin: 1.35rem 0 1.6rem; }
 .diagram figcaption { color: var(--muted); margin-top: 0.45rem; }
-.topo-key {
+
+.arch {
+  border: 1px solid rgba(212, 180, 131, 0.38);
+  background:
+    radial-gradient(640px 240px at 8% 0%, rgba(212, 180, 131, 0.09), transparent 58%),
+    linear-gradient(180deg, rgba(255, 250, 240, 0.03), transparent 42%),
+    #161218;
+  padding: 1.15rem 1.25rem 1rem;
+}
+.arch-head {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin: 0 0 0.7rem;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.05rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(212, 180, 131, 0.28);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-.topo-key span,
-.topo li > span:not(.topo-arrow) {
-  display: block;
-  border: 1px solid var(--gold);
-  background: #1b1520;
-  padding: 0.5rem 0.65rem;
-}
-.topo ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.45rem;
-}
-.topo li {
+.arch-legend {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.55rem 0.5rem;
+  color: var(--muted);
+  letter-spacing: 0.14em;
 }
-.topo li > span:not(.topo-arrow) { flex: 1 1 9rem; }
-.topo .is-remote { border-style: dashed; }
-.topo-arrow {
+.arch-legend .swatch {
+  width: 1.15rem;
+  height: 0.55rem;
+  border: 1px solid rgba(212, 180, 131, 0.9);
+  background: rgba(212, 180, 131, 0.1);
+}
+.arch-legend .swatch.remote {
+  border-style: dashed;
+  background: rgba(196, 92, 106, 0.12);
+}
+.arch-map {
+  display: grid;
+  grid-template-columns: 1.05fr 1.15fr 0.95fr 1.2fr 1.15fr;
+  grid-template-areas:
+    "mic whisper queue reply voice"
+    "key key queue reply voice"
+    "screen vision queue mem store";
+  gap: 0.7rem 1.2rem;
+  align-items: stretch;
+}
+.arch-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 4.35rem;
+  padding: 0.65rem 0.75rem 0.7rem;
+  border: 1px solid rgba(212, 180, 131, 0.55);
+  background: rgba(18, 14, 20, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 250, 240, 0.05);
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+.arch-node em {
+  display: block;
+  margin-bottom: 0.22rem;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.arch-node.remote {
+  border-style: dashed;
+  background: rgba(196, 92, 106, 0.07);
+}
+.arch-node.hub {
+  border-style: solid;
+  border-color: var(--gold);
+  background:
+    linear-gradient(180deg, rgba(212, 180, 131, 0.16), rgba(212, 180, 131, 0.05));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 240, 0.12),
+    0 0 0 1px rgba(212, 180, 131, 0.15);
+  font-family: var(--serif);
+  font-size: 1.22rem;
+  letter-spacing: -0.02em;
+  text-align: center;
+  align-items: center;
+}
+.arch-node.hub em { margin-bottom: 0.4rem; }
+.arch-node.direct {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  min-height: 4.35rem;
+  padding: 0;
   border: 0;
   background: transparent;
-  color: var(--gold);
-  padding: 0;
+  box-shadow: none;
 }
-
+.arch-node.direct > span:first-child {
+  flex: 0 0 auto;
+  min-width: 8.6rem;
+  padding: 0.65rem 0.75rem 0.7rem;
+  border: 1px solid rgba(212, 180, 131, 0.55);
+  background: rgba(18, 14, 20, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 250, 240, 0.05);
+}
+.arch-also {
+  display: block;
+  margin-top: 0.15rem;
+}
+.arch-track {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(212, 180, 131, 0.25), rgba(212, 180, 131, 0.95));
+}
+.arch-track b {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 0.45rem;
+  background: #161218;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.arch-node:not(.origin)::before,
+.arch-node.feeds::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 1.2rem;
+  height: 1px;
+  background: rgba(212, 180, 131, 0.85);
+}
+.arch-node:not(.origin)::before { right: 100%; }
+.arch-node.feeds::after { left: 100%; }
+.arch-config {
+  margin: 0.95rem 0 0.1rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(212, 180, 131, 0.22);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
 .schools {
   list-style: none;
   padding: 0;
@@ -1103,25 +1211,47 @@ h1, h2, .statement, .lede {
 
   .maidens figcaption { font-size: 0.78rem; }
 
-  .diagram-flow {
+  .arch { padding: 0.85rem 0.75rem 0.7rem; }
+  .arch-head {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 0.45rem;
   }
-
-  .diagram-arrow {
-    align-self: center;
-    transform: rotate(90deg);
+  .arch-map {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "mic"
+      "whisper"
+      "key"
+      "screen"
+      "vision"
+      "queue"
+      "reply"
+      "voice"
+      "mem"
+      "store";
+    gap: 0.4rem;
+    margin-left: 0.15rem;
+    padding-left: 0.85rem;
+    border-left: 1px solid rgba(212, 180, 131, 0.45);
   }
-
-  .topo li {
+  .arch-node { min-height: 0; }
+  .arch-node.direct {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    padding: 0.55rem 0.7rem 0.6rem;
+    border: 1px solid rgba(212, 180, 131, 0.5);
+    background: rgba(18, 14, 20, 0.55);
   }
-
-  .topo-arrow {
-    align-self: center;
-    transform: rotate(90deg);
+  .arch-node.direct > span:first-child {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
+  .arch-track { display: none; }
+  .arch-node:not(.origin)::before,
+  .arch-node.feeds::after { display: none; }
 
   .score.player {
     width: auto;
