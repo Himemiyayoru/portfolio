@@ -1,9 +1,15 @@
 import { Reel } from "@/components/Reel";
 import { Split } from "@/components/Split";
 
+Tech Stack: React Native (Expo), FastAPI, Gemini, Groq, Whisper, OpenAI (gpt-4o-mini). The complete source code is available on [GitHub](https://github.com/Himemiyayoru/cocktail-agent).
+
 <Reel src="/work/bobs-special-blend/demo.mp4" label="Bob's Special Blend" />
 
-The phone is React Native on Expo. The service is FastAPI, at `bobs-special-blend.onrender.com`. I made the phone, the physics drawing, and the service with Gemini.
+## The Design Intent: Liquid Math & The Home Bartender's Dilemma
+
+Bob's Special Blend was born from a conversation with a colleague—a math major and an avid home bartender. He complained about the classic mixology trap: wanting to try a new cocktail often requires buying yet another bottle, while the ones you own gather dust because you don't know what to make without constantly asking an AI.
+
+This inspired the app's foundational feature: a cabinet that strictly subtracts your real inventory against a catalog. But the app's defining feature came from a passing joke he made. Mixology is rigorous—change a pour by a few milliliters, and the entire drink alters. This inspired me to treat a recipe not as a static list, but as an editable physical equation. I built a mobile simulator where you can tweak any ingredient's volume via ±5ml steps and instantly see the real-world impact: watching the color, ABV, sweetness, and liquid layers mathematically redraw in the glass.
 
 <Split
   src="/work/bobs-special-blend/library.jpg"
@@ -12,11 +18,15 @@ The phone is React Native on Expo. The service is FastAPI, at `bobs-special-blen
   height={1950}
   side="image-left"
   shift="left"
-  title="The library"
+  title="1. The Library & Data Engineering"
 >
-This is the screen a cocktail app is expected to open on. Drinks are grouped into families, and each family scrolls sideways: highballs, sours, and the rest. A card shows the drink and opens the recipe. Tap the heart and it is saved. Saved is that same list, kept for later.
+The app opens to a library grouped into families (highballs, sours, etc.) that scroll sideways. A card shows the drink and opens the recipe. Tapping the heart saves it offline for later. The UI feels dynamic, with authentic cocktail photography loading as you browse.
 
-The catalog is more than four hundred recipes, seeded from TheCocktailDB and served by `GET /api/v2/recipes`. Each entry keeps a real name, a method, a glass, and components in milliliters. The card photograph is fetched live from TheCocktailDB by that name. A heart writes the recipe id into AsyncStorage on the phone, under `@cocktail_favorites`. The Saved tab filters the catalog down to those ids. Nothing about a heart is sent to the service.
+**Regex Classification & Live Assets:** The API returns only the ID, name, and glass type. The phone uses Regex on the names to group them into families. Photographs are not stored in the database; they are fetched live from TheCocktailDB by name. Favorites are written to `@cocktail_favorites` in AsyncStorage and are never sent to the server.
+
+**LLM as an ETL Pipeline:** To give the physics engine its data, `backend/data_pipeline.py` fetched raw text recipes via API, then passed them to gpt-4o-mini (temperature 0.1, strict JSON). The LLM standardized units (1 oz = 30ml), mapped to seven glass types, and estimated Brix, pH, opacity, and RGB.
+
+**Heuristic Pruning:** The result is 441 drinks and 404 ingredients. Garnishes (0ml) are explicitly excluded from drawing. For pitcher recipes exceeding glass capacity, the phone pragmatically scales the total volume down to 95% of the glass and rounds to the nearest 5ml.
 </Split>
 
 <Split
@@ -26,11 +36,11 @@ The catalog is more than four hundred recipes, seeded from TheCocktailDB and ser
   height={1024}
   side="text-left"
   shift="right"
-  title="The cabinet"
+  title="2. The Cabinet: Set Subtraction"
 >
-The cabinet is a kitchen, not a backbar. You mark the bottles and mixers already in the house. The app then tells you what you can make right now, and what you could make if you bought one or two more things. The missing names are written on the card.
+Your cabinet is a kitchen, not a commercial backbar. Mark the bottles you own, and the app tells you exactly what you can make right now, and what you could make if you bought just one or two specific missing ingredients.
 
-Marks stay on the phone in AsyncStorage, under `@cocktail_inventory`. Matching is a request to `POST /api/v2/match`. The service turns the shelf into a set and, for every recipe, subtracts that set from the recipe's ingredients. Zero missing is a perfect match. One or two missing is almost there, with the missing names attached. Closer drinks are sorted first. The ingredient list itself comes from `GET /api/v2/ingredients`, grouped by category.
+Inventory marks stay on the phone via AsyncStorage (`@cocktail_inventory`). However, when querying what to make, this list is sent to `POST /api/v2/match`. Instead of a complex predictive model, the backend uses strict set subtraction. For every recipe, it subtracts the user's shelf set from the recipe's ingredient set. Zero missing yields a perfect match. Near-matches (1-2 missing) are returned sorted by proximity, with the missing names attached.
 </Split>
 
 <Split
@@ -40,11 +50,15 @@ Marks stay on the phone in AsyncStorage, under `@cocktail_inventory`. Matching i
   height={1024}
   side="image-left"
   shift="left"
-  title="Search"
+  title="3. Fallback Fuzzy Search"
 >
-You type what you remember of a name. If a recipe contains those letters, it shows up. If you misspell it, the closest real names still appear. The search does not leave the phone.
+When you search for a half-remembered name, the results filter as you type. Even if you misspell it, the closest real names still appear.
 
-The catalog is already on the device. Each keystroke filters it in memory. A name that contains the query is an exact hit and stops the search. If nothing contains it, the phone computes Levenshtein distance against every recipe name, keeps distances of three or less, sorts them, and shows the five closest. No search request is sent.
+Opening the search screen triggers a network fetch to load the catalog, with thumbnails independently loading from TheCocktailDB. Once loaded, filtering happens locally in two passes:
+
+**Exact Substring:** The engine first checks if any name contains the query. If there's a hit, the search stops.
+
+**Levenshtein Distance:** Only if the substring match fails, the phone computes the Levenshtein distance against every recipe name in memory, discards distances greater than 3, and sorts the remainder to show the five closest matches.
 </Split>
 
 <Split
@@ -54,11 +68,15 @@ The catalog is already on the device. Each keystroke filters it in memory. A nam
   height={1950}
   side="text-left"
   shift="right"
-  title="Ask Bob"
+  title="4. Ask Bob: The Constrained AI Bartender"
 >
-Ask Bob is the part of drinking alone that is still a conversation. You say how the day went, by typing or by holding the button and talking. He answers the mood before he names a drink. The name is one cocktail from the menu. He does not invent one. The reply opens the real recipe, so the conversation ends on a glass you can make.
+"Ask Bob" captures the conversational side of drinking alone. You can type or talk about your day. He answers your mood before suggesting a drink. Crucially, Bob does not invent impossible cocktails out of thin air—he only recommends real drinks from the catalog.
 
-Speech is recorded on the phone and posted to `POST /api/v2/transcribe`. The service sends that file to OpenAI Whisper (`whisper-1`) and returns the text. Chat goes to `POST /api/v2/chat_with_bob`. Bob is Llama 3.1 8B Instant on Groq, with the full catalog names in the system prompt, temperature 0.5, a short token cap, and a required JSON shape: a comment, and exactly one menu name or an empty string. The service matches that name exactly, then by partial overlap. A name that is not on the menu is dropped, and Bob is left as conversation. Both routes are rate-limited per address.
+**Dual API Routing:** Audio is recorded locally, posted to `POST /api/v2/transcribe`, and routed to Whisper (whisper-1). Chat hits `POST /api/v2/chat_with_bob` (rate-limited to 15/hr per IP).
+
+**Strict JSON & Overlap Logic:** Bob runs on Llama 3.1 8B Instant (temperature 0.5, 150 token cap), instructed to output a JSON comment and exactly one menu name.
+
+**Graceful Degradation:** The server attempts an exact match. If it fails, it tries a partial overlap (substring match in either direction). If the LLM completely hallucinates a name, the recommendation is silently dropped, leaving only the conversation.
 </Split>
 
 <Split
@@ -68,15 +86,17 @@ Speech is recorded on the phone and posted to `POST /api/v2/transcribe`. The ser
   height={1950}
   side="image-left"
   shift="left"
-  title="The glass that recalculates"
+  title="5. The Glass That Recalculates (Physics Rendering)"
 >
-A drink opens on its photograph. Move a measure, swap a bottle, or change the glass, and the photograph gives way to a drawing, because the photograph is no longer the drink you are making. The liquid fits the glass. Past the rim, it stops. You can see it mixed into one color, or poured in layers. Alcohol, sweetness, and volume sit next to the original, with the direction of the change. A substitute is another ingredient in the same family, ranked by how close it is.
+Adjust a 5ml measure, swap a bottle, or change the glass, and the photograph gives way to a dynamic drawing. You instantly see the concoction mixed into one color, or poured in layers, alongside real-time data on its adjusted ABV, sweetness, and volume.
 
-The drawing is computed on the phone, in the recipe screen, so a slider does not wait on the network. Seven glasses are modeled as SVG profiles with a capacity: highball, rocks, martini, coupe, flute, Nick and Nora, and shot. Fill is clipped to that capacity. Alcohol and Brix are volume-weighted averages of the ingredients in the glass. Color uses a Beer-Lambert approximation: each channel's absorbance is summed by volume, then converted back to RGB, so a dark bottle darkens the result instead of being averaged away. Layered mode estimates specific gravity as `1 + brix × 0.004 − abv × 0.001` and draws the denser liquid underneath. Mixed mode uses the one blended color. Substitutes come from `GET /api/v2/substitute`. The service scores other ingredients in the same category by the gap in ABV, Brix, pH, and RGB distance, and returns the closest. Each ingredient's baseline, alcohol, Brix, acidity, color, and opacity, was estimated when the catalog was seeded.
+Glass rendering is strictly computed on the phone to instantly respond to tap events.
+
+**Volumetric Blending:** Color uses a Beer-Lambert approximation. Each channel's absorbance is summed by volume, then converted back to RGB, accurately darkening the result. (While the server contains an unused dilution function for shaken/stirred ice melt, the phone intentionally ignores this to reflect pure liquid volumes).
+
+**Specific Gravity & Substitutions:** In layered mode, specific gravity is estimated as `1 + brix × 0.004 − abv × 0.001`, drawing denser liquids underneath. Swapping a bottle calls `GET /api/v2/substitute`, which sorts alternatives in the same category by computing the distance in ABV, Brix, pH, and RGB. (pH is explicitly used here for chemical sorting, but excluded from visual rendering).
 </Split>
 
-## Why it exists
+## The Piece You Can Hold
 
-The project started with a colleague who had just taken the job. Most of what he told were stories about drinking too much, and he had studied mathematics. A recipe is a set of quantities. Change one, and the finished drink should change in a way you can see: color, alcohol, sweetness, and whether the liquids blend or sit in layers.
-
-That calculation is the app. The catalog stays a catalog. The recipe screen is the editor. The glass follows the numbers. I made the phone, the physics drawing, and the service with Gemini. The video above is the piece you can hold.
+The cabinet matching, AI inference, and Whisper transcriptions live on the server, but the physics rendering and UX are computed entirely in the hand. The video at the top of this page is a full demonstration of the live client—from the layered specific gravity to the conversational bartending.
