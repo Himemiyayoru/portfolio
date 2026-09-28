@@ -74,7 +74,7 @@ Opening the search screen triggers a network fetch to load the catalog, with thu
 
 **Dual API Routing:** Audio is recorded locally, posted to `POST /api/v2/transcribe`, and routed to Whisper (whisper-1). Chat hits `POST /api/v2/chat_with_bob` (rate-limited to 15/hr per IP).
 
-**Strict JSON & Overlap Logic:** Bob runs on Llama 3.1 8B Instant (temperature 0.5, 150 token cap), instructed to output a JSON comment and exactly one menu name.
+**Strict JSON & Overlap Logic:** Bob runs on openai/gpt-oss-20b (temperature 0.5, 512 token cap), instructed to output a JSON comment and exactly one menu name.
 
 **Graceful Degradation:** The server attempts an exact match. If it fails, it tries a partial overlap (substring match in either direction). If the LLM completely hallucinates a name, the recommendation is silently dropped, leaving only the conversation.
 </Split>
