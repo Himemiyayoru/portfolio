@@ -55,7 +55,7 @@ export function HimePlate() {
 
   return (
     <div className="plate-hime">
-      <HimePortrait ref={figureRef} emotion="happy" followCursor={false} />
+      <HimePortrait ref={figureRef} emotion="happy" followCursor={false} gesture="cat" />
     </div>
   );
 }

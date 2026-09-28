@@ -171,7 +171,7 @@ function mapRange(
   return output;
 }
 
-function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
+function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion, gesture?: "cat") {
   // Same input ranges as 碳酸's VTube Studio bindings: FaceAngle drives the head and the body.
   core.setParameterValueById("ParamAngleX", mapRange(pose.x, -30, 30, -30, 30, false, false));
   core.setParameterValueById("ParamAngleY", mapRange(pose.y, -20, 20, -30, 30, true, false));
@@ -195,6 +195,8 @@ function applyPose(core: CoreModel, pose: HimePose, emotion: Emotion) {
   core.setParameterValueById("ParamEyeRSmile", emotion === "happy" ? 0.8 : 0);
   core.setParameterValueById("ParamCheek", emotion === "happy" ? 0.45 : 0);
   core.setParameterValueById("ParamBreath", (Math.sin(performance.now() / 700) + 1) / 2);
+  // Homepage plate only. Keyts_30 is the 抱猫 toggle: it shows the cat and drives the sleeve physics.
+  core.setParameterValueById("Keyts_30", gesture === "cat" ? 1 : 0);
 }
 
 type Seat = {
@@ -206,6 +208,7 @@ type Seat = {
   bust: { anchorY: number; fraction: number } | null;
   getPose: () => HimePose;
   getEmotion: () => Emotion;
+  gesture?: "cat";
   onReady: () => void;
 };
 
@@ -381,7 +384,7 @@ function registerSeat(seat: Seat) {
       // simulation every frame and looked like a twitch instead of a sway.
       const update = loaded.internalModel.update.bind(loaded.internalModel);
       loaded.internalModel.update = (dt, now) => {
-        applyPose(loaded.internalModel.coreModel, seat.getPose(), seat.getEmotion());
+        applyPose(loaded.internalModel.coreModel, seat.getPose(), seat.getEmotion(), seat.gesture);
         update(dt, now);
       };
       seat.bust = bustFrame(
@@ -409,8 +412,8 @@ function registerSeat(seat: Seat) {
 
 const HimeLive2D = forwardRef<
   HimeHandle,
-  { url: string; emotion: Emotion; onReady: () => void; followCursor?: boolean }
->(function HimeLive2D({ url, emotion, onReady, followCursor = true }, ref) {
+  { url: string; emotion: Emotion; onReady: () => void; followCursor?: boolean; gesture?: "cat" }
+>(function HimeLive2D({ url, emotion, onReady, followCursor = true, gesture }, ref) {
     const hostRef = useRef<HTMLDivElement>(null);
     const poseRef = useRef<HimePose>({ x: 0, y: 0, z: 0, blink: false, mouth: 0 });
     const emotionRef = useRef(emotion);
@@ -436,16 +439,19 @@ const HimeLive2D = forwardRef<
         bust: null,
         getPose: () => poseRef.current,
         getEmotion: () => emotionRef.current,
+        gesture,
         onReady: () => onReadyRef.current(),
       });
-    }, [url, followCursor]);
+    }, [url, followCursor, gesture]);
 
     return <div ref={hostRef} className="hime-live" />;
   },
 );
 
-export const HimePortrait = forwardRef<HimeHandle, { emotion: Emotion; followCursor?: boolean }>(
-  function HimePortrait({ emotion, followCursor = true }, ref) {
+export const HimePortrait = forwardRef<
+  HimeHandle,
+  { emotion: Emotion; followCursor?: boolean; gesture?: "cat" }
+>(function HimePortrait({ emotion, followCursor = true, gesture }, ref) {
   const svgRef = useRef<HimeHandle>(null);
   const liveRef = useRef<HimeHandle>(null);
   const hasModel = Boolean(site.live2dModel);
@@ -468,6 +474,7 @@ export const HimePortrait = forwardRef<HimeHandle, { emotion: Emotion; followCur
           emotion={emotion}
           url={site.live2dModel}
           followCursor={followCursor}
+          gesture={gesture}
           onReady={() => {}}
         />
       ) : (

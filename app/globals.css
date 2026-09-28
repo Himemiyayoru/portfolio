@@ -848,23 +848,8 @@ h1, h2, .statement, .lede {
   position: relative;
   z-index: 1;
 }
-.score-line.is-live .score-ch {
-  color: rgba(212, 180, 131, 0.4);
-}
-.score-line.is-live .score-ch.is-sung {
-  color: #f6ead8;
-  text-shadow: 0 0 10px rgba(212, 180, 131, 0.35);
-}
-.score-ch.is-now {
-  color: #fff8ec;
-  text-shadow:
-    0 0 6px rgba(255, 236, 206, 0.95),
-    0 0 16px rgba(212, 180, 131, 0.85),
-    0 0 28px rgba(196, 92, 106, 0.45);
-}
 @media (prefers-reduced-motion: reduce) {
   .score-motes { display: none; }
-  .score-ch.is-now { text-shadow: none; }
 }
 
 .spine {
