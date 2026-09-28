@@ -39,7 +39,7 @@ export const works: Work[] = [
     status: "Shipped",
     year: "2026",
     role: "Game, client, art, sound",
-    lede: "A werewolf game you can play alone. Eight AI maidens hold the other seats. You still speak, vote, and risk being wrong. Upright cards keep the village. Reversed cards are the witches.",
+    lede: "A werewolf game you can play alone. Eight AI players hold the other seats. You still speak, vote, and risk being wrong. Upright cards keep the village. Reversed cards are the witches.",
     plate: "Werewolf, with tarot, for a player who does not want a crowd.",
     tone: "crimson",
     frame: "wide",

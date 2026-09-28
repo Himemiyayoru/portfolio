@@ -22,9 +22,9 @@ Crimson Moon was built on the philosophy that AI is not just a functional gimmic
 
 ## 1. A Full Table, Without a Crowd
 
-Werewolf usually needs a room of people. Crimson Moon seats one human and eight star maidens, and still plays a full deduction game. You speak, you vote, and you can be wrong. Most importantly, you do not have to coordinate schedules to play a psychological thriller.
+Werewolf usually needs a room of people. Crimson Moon seats one human and eight AI players, and still plays a full deduction game. You speak, you vote, and you can be wrong. Most importantly, you do not have to coordinate schedules to play a psychological thriller.
 
-Nine seats exist at the table. The human is one, while the other eight are drawn from a pool of fifteen village maidens. Two seats are dealt reversed witches. Card numbers are strictly unique—meaning two living players cannot truthfully claim the same Major Arcana. Civilians win when every reversed witch is exiled. Witches win when the number of living civilians equals or falls below the living witches—at which point a voting majority is mathematically impossible—or when the village is wiped out. The rules host is a robust engine in `src/engine/game.ts`. The client is built in React 19 and Vite, fully localized in Chinese and English, playable in the browser or via a Windows Electron build.
+Nine seats exist at the table. The human is one, while the other eight are drawn from a pool of fifteen AI players. Two seats are dealt reversed witches. Card numbers are strictly unique—meaning two living players cannot truthfully claim the same Major Arcana. Civilians win when every reversed witch is exiled. Witches win when the number of living civilians equals or falls below the living witches—at which point a voting majority is mathematically impossible—or when the village is wiped out. The rules host is a robust engine in `src/engine/game.ts`. The client is built in React 19 and Vite, fully localized in Chinese and English, playable in the browser or via a Windows Electron build.
 
 ## 2. The Symbolic Engine (An AI Brain Without the LLM)
 
@@ -42,7 +42,7 @@ The core decision-making is a heavily weighted scoring engine.
 
 ## 3. LLM as a Flavor Engine
 
-The maidens talk like real people at a table. You can answer with a prepared line, write your own, or name someone to pull them into the conversation. When the language model is engaged, it doesn't decide what the character does—it only determines how they express the engine's decision.
+The AI players talk like real people at a table. You can answer with a prepared line, write your own, or name someone to pull them into the conversation. When the language model is engaged, it doesn't decide what the character does—it only determines how they express the engine's decision.
 
 **Strict Boundary Calls:** The LLM (`src/engine/llm.ts`) only rewrites a finished plan. It never chooses targets, votes, or abilities.
 
@@ -54,7 +54,7 @@ The maidens talk like real people at a table. You can answer with a prepared lin
 
 A day in Crimson Moon has a strict order. The Tea Party is a small, private gathering where secrets are shared, while the Trial is the only place for public accusations. This structure creates dramatic irony: you might hear a lie at the public Trial that contradicts what you heard in the private Tea Party.
 
-The engine strictly encapsulates game state into six phases: Dawn, Morning, Tea Party, Trial, Nightfall, and Sabbath. Information isolation is achieved cleanly through input scoping rather than complex obfuscation. The AI planner filters inputs via an observer list (`knownActs`). A maiden cannot speak of events outside her room simply because those events are never passed into her input context in the first place.
+The engine strictly encapsulates game state into six phases: Dawn, Morning, Tea Party, Trial, Nightfall, and Sabbath. Information isolation is achieved cleanly through input scoping rather than complex obfuscation. The AI planner filters inputs via an observer list (`knownActs`).
 
 ## 5. Pacing & The Two Clocks
 
@@ -64,9 +64,9 @@ The game engine supports dual temporal states. When `settings.realtime` is off, 
 
 ## 6. Cards With Two Faces
 
-Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match deals a new set of maidens and a new set of powers each time. The Gothic atmosphere stems directly from the mechanics: your fate is tied to a physical card that can flip, rather than an invisible "wolf" label arbitrarily assigned in a lobby.
+Every Major Arcana has two abilities. Upright, she protects the village. Reversed, she is a witch. A match deals a new set of AI players and a new set of powers each time. The Gothic atmosphere stems directly from the mechanics: your fate is tied to a physical card that can flip, rather than an invisible "wolf" label arbitrarily assigned in a lobby.
 
-Card uniqueness is a hard rule. A Priestess must announce her finding strictly as "Upright" or "Reversed," not the card name itself. If you claim to be the Priestess but announce finding another Priestess, you expose yourself. The abilities are driven purely by numerical values in `game.ts`, separate from flavor text in `src/data/arcana.ts`. Headless scripts can simulate matches or print transcripts without ever opening the client, proving the complete decoupling of logic and UI.
+Card uniqueness is a hard rule. The abilities are driven purely by numerical values in `game.ts`, separate from flavor text in `src/data/arcana.ts`. Headless scripts can simulate matches or print transcripts without ever opening the client, proving the complete decoupling of logic and UI.
 
 ## 7. Asset Pipeline: Look, Motion, and Score
 

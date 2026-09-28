@@ -663,6 +663,9 @@ h1, h2, .statement, .lede {
   color: var(--gold);
   font-weight: 560;
 }
+.case[data-tone="amber"] .prose strong {
+  color: #d4b483;
+}
 
 .score {
   margin: 1.4rem 0;
