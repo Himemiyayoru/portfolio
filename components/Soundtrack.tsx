@@ -32,38 +32,13 @@ function PauseIcon() {
 
 function LyricStage({ audioRef }: { audioRef: RefObject<HTMLAudioElement | null> }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    const canvas = canvasRef.current;
-    if (!root || !canvas) return;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!root) return;
     const nodes = Array.from(root.querySelectorAll<HTMLElement>(".score-ch"));
-    const motes: {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      life: number;
-      age: number;
-      radius: number;
-    }[] = [];
     let frame = 0;
-    let last = performance.now();
-
-    const fit = () => {
-      const rect = root.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(root);
+    let lit: HTMLElement | null = null;
 
     const glyphAt = (time: number) => {
       let lo = 0;
@@ -79,59 +54,26 @@ function LyricStage({ audioRef }: { audioRef: RefObject<HTMLAudioElement | null>
       return null;
     };
 
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
+    const tick = () => {
       const audio = audioRef.current;
-      const time = audio?.currentTime ?? 0;
-      const active = glyphAt(time);
-      const bounds = root.getBoundingClientRect();
-      if (audio && !audio.paused && active && !reduce.matches) {
-        const box = active.getBoundingClientRect();
-        motes.push({
-          x: box.left - bounds.left + box.width / 2 + (Math.random() - 0.5) * 10,
-          y: box.top - bounds.top - 1,
-          vx: (Math.random() - 0.5) * 8,
-          vy: -10 - Math.random() * 14,
-          life: 0.55 + Math.random() * 0.35,
-          age: 0,
-          radius: 0.7 + Math.random() * 0.8,
-        });
+      const singing = audio !== null && !audio.paused;
+      const next = singing ? glyphAt(audio.currentTime) : null;
+      if (next !== lit) {
+        lit?.classList.remove("is-now");
+        next?.classList.add("is-now");
+        lit = next;
       }
-
-      context.clearRect(0, 0, bounds.width, bounds.height);
-      for (let i = motes.length - 1; i >= 0; i -= 1) {
-        const mote = motes[i];
-        mote.age += dt;
-        if (mote.age >= mote.life) {
-          motes.splice(i, 1);
-          continue;
-        }
-        mote.x += mote.vx * dt;
-        mote.y += mote.vy * dt;
-        const fade = 1 - mote.age / mote.life;
-        const radius = mote.radius * (0.8 + fade * 0.4);
-        const paint = context.createRadialGradient(mote.x, mote.y, 0, mote.x, mote.y, radius * 3);
-        paint.addColorStop(0, `rgba(244, 226, 186, ${0.28 * fade})`);
-        paint.addColorStop(1, "rgba(212, 180, 131, 0)");
-        context.fillStyle = paint;
-        context.beginPath();
-        context.arc(mote.x, mote.y, radius * 3, 0, Math.PI * 2);
-        context.fill();
-      }
-      if (motes.length > 36) motes.splice(0, motes.length - 36);
       frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
     return () => {
       window.cancelAnimationFrame(frame);
-      observer.disconnect();
+      lit?.classList.remove("is-now");
     };
   }, [audioRef]);
 
   return (
     <div className="score-lyrics" aria-label="Japanese lyrics" ref={rootRef}>
-      <canvas ref={canvasRef} className="score-motes" aria-hidden="true" />
       {duskGlyphs.map((stanza, stanzaIndex) => (
         <p key={stanzaIndex}>
           {stanza.map((line, lineIndex) => (
