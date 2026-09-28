@@ -40,7 +40,7 @@ export const lines: Record<LineId, Line> = {
   },
   "crimson-moon": {
     id: "crimson-moon",
-    text: "Welcome to Crimson Moon. This is a deduction tea party built to completely insulate you from social pressure. A rigorous state machine and trust matrix form the core rules here, allowing the upright and reversed Tarot to dictate the tide. The AI opponents at this table are by no means governed by random text; their every disguise and elimination stems from precise strategic calculations, with the large language model acting purely as a flavor engine to breathe life into their personalities. Please, take a seat, and immerse yourself in this pure psychological game.",
+    text: "Welcome to Crimson Moon. This is an intimate game of deduction designed for solo play-no scheduling, no social pressure, just play when you want. A rigorous state machine and trust matrix form the core rules here, allowing the upright and reversed Tarot to dictate the tide. The AI opponents at this table are by no means governed by random text; their every disguise and elimination stems from precise strategic calculations, with the large language model acting purely as a flavor engine to breathe life into their personalities. Please, take a seat, and immerse yourself in this pure psychological game.",
     emotion: "neutral",
     audio: "/hime/lines/crimson-moon.mp3",
   },
