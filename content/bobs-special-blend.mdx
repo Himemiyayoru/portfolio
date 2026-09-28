@@ -26,7 +26,7 @@ The app opens to a library grouped into families (highballs, sours, etc.) that s
 
 **LLM as an ETL Pipeline:** To give the physics engine its data, `backend/data_pipeline.py` fetched raw text recipes via API, then passed them to gpt-4o-mini (temperature 0.1, strict JSON). The LLM standardized units (1 oz = 30ml), mapped to seven glass types, and estimated Brix, pH, opacity, and RGB.
 
-**Heuristic Pruning:** The result is 441 drinks and 404 ingredients. Garnishes (0ml) are explicitly excluded from drawing. For pitcher recipes exceeding glass capacity, the phone pragmatically scales the total volume down to 95% of the glass and rounds to the nearest 5ml.
+**Heuristic Pruning:** The result is 441 drinks and 404 ingredients. For pitcher recipes exceeding glass capacity, the phone pragmatically scales the total volume down to 95% of the glass and rounds to the nearest 5ml.
 </Split>
 
 <Split

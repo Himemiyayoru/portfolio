@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { HimeHandle } from "@/components/HimeFigure";
 import { HimePortrait } from "@/components/HimeLive2D";
-import { judgmentDuskLyrics } from "@/content/judgment-dusk";
+import { duskGlyphs } from "@/content/judgment-dusk-cues";
 import { getWork } from "@/content/works";
 
 function formatTime(seconds: number) {
@@ -27,6 +27,193 @@ function PauseIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M6 5h4.2v14H6zM13.8 5H18v14h-4.2z" />
     </svg>
+  );
+}
+
+function LyricStage({
+  audioRef,
+  playing,
+}: {
+  audioRef: RefObject<HTMLAudioElement | null>;
+  playing: boolean;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const playingRef = useRef(playing);
+
+  useEffect(() => {
+    playingRef.current = playing;
+  }, [playing]);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const canvas = canvasRef.current;
+    if (!root || !canvas) return;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const nodes = Array.from(root.querySelectorAll<HTMLElement>(".score-ch"));
+    const motes: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      age: number;
+      radius: number;
+      hot: boolean;
+    }[] = [];
+    let frame = 0;
+    let lastLine: HTMLElement | null = null;
+    let last = performance.now();
+
+    const fit = () => {
+      const rect = root.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(root);
+
+    const clearLine = (line: HTMLElement | null) => {
+      if (!line) return;
+      line.classList.remove("is-live");
+      line.querySelectorAll(".score-ch").forEach((node) => {
+        node.classList.remove("is-now", "is-sung");
+      });
+    };
+
+    const glyphAt = (time: number) => {
+      let lo = 0;
+      let hi = nodes.length - 1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const start = Number(nodes[mid].dataset.s);
+        const end = Number(nodes[mid].dataset.e);
+        if (time < start) hi = mid - 1;
+        else if (time >= end) lo = mid + 1;
+        else return nodes[mid];
+      }
+      return null;
+    };
+
+    const lineAt = (time: number) => {
+      const lines = root.querySelectorAll<HTMLElement>(".score-line");
+      for (const line of lines) {
+        const chars = line.querySelectorAll<HTMLElement>(".score-ch");
+        const first = chars[0];
+        const lastGlyph = chars[chars.length - 1];
+        if (!first || !lastGlyph) continue;
+        if (time >= Number(first.dataset.s) && time < Number(lastGlyph.dataset.e)) return line;
+      }
+      return null;
+    };
+
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const time = audioRef.current?.currentTime ?? 0;
+      const active = glyphAt(time);
+      const line = lineAt(time);
+      if (line !== lastLine) {
+        clearLine(lastLine);
+        lastLine = line;
+        line?.classList.add("is-live");
+      }
+      line?.querySelectorAll<HTMLElement>(".score-ch").forEach((node) => {
+        node.classList.toggle("is-now", node === active);
+        node.classList.toggle("is-sung", node !== active && Number(node.dataset.e) <= time);
+      });
+
+      const bounds = root.getBoundingClientRect();
+      if (playingRef.current && active && !reduce.matches) {
+        const box = active.getBoundingClientRect();
+        const x = box.left - bounds.left + box.width / 2;
+        const y = box.top - bounds.top + box.height * 0.62;
+        for (let i = 0; i < 2; i += 1) {
+          motes.push({
+            x: x + (Math.random() - 0.5) * Math.max(box.width, 8),
+            y: y + (Math.random() - 0.4) * box.height,
+            vx: (Math.random() - 0.5) * 18,
+            vy: -26 - Math.random() * 34,
+            life: 0.38 + Math.random() * 0.42,
+            age: 0,
+            radius: 1.3 + Math.random() * 2.3,
+            hot: Math.random() < 0.28,
+          });
+        }
+      }
+
+      context.clearRect(0, 0, bounds.width, bounds.height);
+      if (active && !reduce.matches) {
+        const box = active.getBoundingClientRect();
+        const x = box.left - bounds.left + box.width / 2;
+        const y = box.top - bounds.top + box.height * 0.45;
+        const glow = context.createRadialGradient(x, y, 0, x, y, 28);
+        glow.addColorStop(0, "rgba(255, 228, 186, 0.55)");
+        glow.addColorStop(0.45, "rgba(212, 180, 131, 0.16)");
+        glow.addColorStop(1, "rgba(212, 180, 131, 0)");
+        context.fillStyle = glow;
+        context.beginPath();
+        context.arc(x, y, 28, 0, Math.PI * 2);
+        context.fill();
+      }
+      for (let i = motes.length - 1; i >= 0; i -= 1) {
+        const mote = motes[i];
+        mote.age += dt;
+        if (mote.age >= mote.life) {
+          motes.splice(i, 1);
+          continue;
+        }
+        mote.x += mote.vx * dt;
+        mote.y += mote.vy * dt;
+        const fade = 1 - mote.age / mote.life;
+        const radius = mote.radius * (0.75 + fade);
+        const paint = context.createRadialGradient(mote.x, mote.y, 0, mote.x, mote.y, radius * 4);
+        if (mote.hot) {
+          paint.addColorStop(0, `rgba(255, 214, 206, ${0.9 * fade})`);
+          paint.addColorStop(0.45, `rgba(196, 92, 106, ${0.38 * fade})`);
+        } else {
+          paint.addColorStop(0, `rgba(255, 244, 220, ${0.95 * fade})`);
+          paint.addColorStop(0.45, `rgba(212, 180, 131, ${0.4 * fade})`);
+        }
+        paint.addColorStop(1, "rgba(212, 180, 131, 0)");
+        context.fillStyle = paint;
+        context.beginPath();
+        context.arc(mote.x, mote.y, radius * 4, 0, Math.PI * 2);
+        context.fill();
+      }
+      if (motes.length > 90) motes.splice(0, motes.length - 90);
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      clearLine(lastLine);
+    };
+  }, [audioRef]);
+
+  return (
+    <div className="score-lyrics" aria-label="Japanese lyrics" ref={rootRef}>
+      <canvas ref={canvasRef} className="score-motes" aria-hidden="true" />
+      {duskGlyphs.map((stanza, stanzaIndex) => (
+        <p key={stanzaIndex}>
+          {stanza.map((line, lineIndex) => (
+            <span key={lineIndex} className="score-line">
+              {line.map((glyph, glyphIndex) => (
+                <span key={glyphIndex} className="score-ch" data-s={glyph.s} data-e={glyph.e}>
+                  {glyph.ch}
+                </span>
+              ))}
+            </span>
+          ))}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -238,17 +425,7 @@ export function Soundtrack() {
             </div>
           </div>
         </div>
-        <div className="score-lyrics" aria-label="Japanese lyrics">
-          {judgmentDuskLyrics.map((stanza, stanzaIndex) => (
-            <p key={stanzaIndex}>
-              {stanza.map((line) => (
-                <span key={line} className="score-line">
-                  {line}
-                </span>
-              ))}
-            </p>
-          ))}
-        </div>
+        <LyricStage audioRef={audioRef} playing={playing} />
       </div>
       <audio
         ref={audioRef}
