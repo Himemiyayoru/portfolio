@@ -90,7 +90,7 @@ export const lines: Record<LineId, Line> = {
     id: "forty-eight",
     text: "Forty-eight versions. No stable edge. The useful part is what got rewritten when the story was false.",
     emotion: "sad",
-    audio: "",
+    audio: "/hime/lines/forty-eight.mp3",
   },
   about: {
     id: "about",
